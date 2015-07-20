@@ -1,5 +1,5 @@
 __author__ = 'hammer'
 
 '''
-Module
+Module created
 '''
