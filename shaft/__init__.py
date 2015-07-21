@@ -13,5 +13,7 @@ __author__ = 'hammer'
 #TODO: modularise the whole lot. options baby, options
 #TODO: standardise a few different weighting models
 
+from shaft.Offical import Official
+
 if __name__ == '__main__':
     print "Damn right"
