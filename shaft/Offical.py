@@ -6,6 +6,19 @@ Possibly ALL the weighting models can be applied on input and just used as neede
 """
 __author__ = 'hammer'
 
-class Official():
+
+class Official:
     def __init__(self):
-        pass
+        # basic stats/info about the official
+        name = None
+        refcert = 0
+        nsocert = 0
+
+        # WFTDA info
+        chr = None
+
+        # MRDA info
+        # TODO: add MRDA info
+
+        # Other info
+        # TODO: add other info, possibly separating out juniors? Probably new format only
