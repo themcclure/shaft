@@ -27,7 +27,7 @@ class Official:
         # TODO: add other info, possibly separating out juniors? Probably new format only
 
     def __repr__(self):
-        return "<name: %s>" % (self.name)
+        return "<name: %s, refcert %d>" % (self.name, self.refcert)
 
 
 # searching, filtering and sorting example code:
@@ -38,12 +38,29 @@ def filtertest():
     a1.name = 'a'
     a1.refcert = 1
     a2 = Official()
-    a2.name = 'b'
+    a2.name = 'c'
     a2.refcert = 0
-    a = [a1, a2]
-    f = ifilter(attrgetter('refcert') >= 0, a)
-    f = (x for x in a if attrgetter('refcert') >= 0)
-    for i in f: print i.name
+    a3 = Official()
+    a3.name = 'd'
+    a3.refcert = 2
+    a4 = Official()
+    a4.name = 'b'
+    a4.refcert = 2
+    a = [a1, a2, a3, a4]
+    print "A = ", a
+    print "filtering refcert > 0:"
+    rcfilter = attrgetter('refcert')
+    f = ifilter(lambda x: rcfilter(x) > 0, a)
+    #f = (x for x in a if attrgetter('refcert') > 0)
+    for i in f: print i
+    print "sorting by refcert:"
+    print sorted(a, key=attrgetter('refcert', 'name'), reverse=True)
+    print "filtering refcert > 0, and sorted:"
+    f = ifilter(lambda x: rcfilter(x) > 0, a)
+    print sorted(f, key=attrgetter('refcert', 'name'), reverse=True)
+    print "filtering refcert > 0, and sorted desc by refcert and asc by name:"
+    f = ifilter(lambda x: rcfilter(x) > 0, a)
+    print sorted(sorted(f, key=attrgetter('name')), key=attrgetter('refcert'), reverse=True)
 
 
 class History:
