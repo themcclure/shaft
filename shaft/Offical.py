@@ -31,7 +31,7 @@ class Official:
 
 
 # searching, filtering and sorting example code:
-from itertools import ifilter
+from itertools import ifilter, ifilterfalse
 from operator import attrgetter
 def filtertest():
     a1 = Official()
@@ -49,9 +49,12 @@ def filtertest():
     a = [a1, a2, a3, a4]
     print "A = ", a
     print "filtering refcert > 0:"
-    rcfilter = attrgetter('refcert')
-    f = ifilter(lambda x: rcfilter(x) > 0, a)
+    # rcfilter = attrgetter('refcert')
+    f = ifilter(lambda x: attrgetter('refcert')(x) > 0, a)
     #f = (x for x in a if attrgetter('refcert') > 0)
+    for i in f: print i
+    print "filtered ones (simpler):"
+    f = ifilterfalse(lambda x: attrgetter('refcert')(x) > 0, a)
     for i in f: print i
     print "sorting by refcert:"
     print sorted(a, key=attrgetter('refcert', 'name'), reverse=True)
