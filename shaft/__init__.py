@@ -14,7 +14,8 @@ __author__ = 'hammer'
 #TODO: standardise a few different weighting models
 
 from shaft.Offical import Official
-from shaft.Offical import History
+from shaft.Offical import Game
+from shaft.Offical import WeightModel
 from shaft.Offical import filtertest
 
 
