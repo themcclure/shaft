@@ -13,10 +13,12 @@ __author__ = 'hammer'
 #TODO: modularise the whole lot. options baby, options
 #TODO: standardise a few different weighting models
 
+
 from shaft.Offical import Official
 from shaft.Offical import Game
 from shaft.Offical import WeightModel
 from shaft.Offical import filtertest
+from shaft.Load import load_file
 
 
 if __name__ == '__main__':

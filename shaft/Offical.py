@@ -15,32 +15,38 @@ from operator import attrgetter
 
 # CONFIG:
 # list of known Associations, Game Types and Roles
-assns = ['WFTDA', 'MRDA', 'Other']
-types = ['Champs', 'Playoff', 'Sanc', 'Reg', 'Other']
-roles = ['CHR', 'JR', 'OPR']
-
+#assns = ['WFTDA', 'MRDA', 'Other']
+#types = ['Champs', 'Playoff', 'Sanc', 'Reg', 'Other']
+#roles = ['CHR', 'JR', 'OPR']
+import config
+assns = config.assns
+types = config.types
+roles = config.roles
 
 class Official:
     """The basic official object.
     Contains data about that official, and the set of games they've worked.
     """
-    def __init__(self):
+    def __init__(self, name):
         # basic stats/info about the official
-        self.name = None
+        self.name = name
         self.refcert = 0
         self.nsocert = 0
         self.games = []
+        self.weighting = {}
 
     def __repr__(self):
         return "<name: %s, refcert %d, games %d>" % (self.name, self.refcert, len(self.games))
 
     def get_games(self, role):
         """
-        Returns a list of games of that role
-        :param role: string of the role name
-        :return: list of Games
+        Returns a list of games of the roles listed
+        :param role: string of the role name, or a list of strings
+        :return: list of matching Games
         """
-        return list(ifilter(lambda x: attrgetter('role')(x) == role, self.games))
+        if not isinstance(role, list):
+                role = [role]
+        return list(ifilter(lambda x: attrgetter('role')(x) in role, self.games))
 
     def apply_weight_models(self, models):
         """
@@ -48,7 +54,9 @@ class Official:
         :param models: list of WeightModels to be applied to the Official
         """
         for model in models:
-            self.weighting[model.name] = []
+            self.weighting[model.name] = {}
+            for r in roles:
+                self.weighting[model.name][r] = reduce(lambda a,b: a + model.weight(b), self.get_games(r), 0)
 
 
 class Game:
@@ -78,11 +86,15 @@ class WeightModel:
     Each model will have a unique name what will be attached to the Official object so that multiple weighting models can
     be applied and then queried individually to provide a comparison
     """
-    ch_uplift = 1.2
-    wgt = {}
-
+    # TODO: ! add in all the rest of the roles in the lists!
+    # TODO: !! add in age as a factor
+    # TODO: add in default weight models?
+    # TODO: add in NSO Families (started with get_roles optionally accepting a list of roles)
+    # TODO: figure out how to figure out the freeze date
     def __init__(self, name):
+        self.wgt = {}
         self.name = name
+        self.ch_uplift = 1.2
         for assn in assns:
             if assn not in self.wgt.keys():
                 self.wgt[assn] = {}
@@ -92,13 +104,19 @@ class WeightModel:
     def __repr__(self):
         return "<Weight model %s>" % self.name
 
+    # TODO: add in game mimimums, perhaps a number that represents how far along the slice counts?
     def weight(self, game):
         """
         Takes a Game and produces a weighted value for that game, based on the weighting model
         :param game: Game object
         :return: real number value
         """
+        if game.assn not in self.wgt.keys():
+            return 0
+        if game.type not in self.wgt[game.assn].keys():
+            return 0
         wgt = self.wgt[game.assn][game.type]
+        # TODO: make this configurable in the model?
         if game.role in ['CHR', 'CHNSO']:
             wgt = wgt * self.ch_uplift
         return wgt
@@ -112,34 +130,33 @@ class WeightModel:
 # whatever function is there to apply the weight model:
 # reduce(lambda x,y: x+y, ifilter(lambda x: attrgetter('role')(x) == 'OPR', a[1].games))
 # TODO: serialize the weighting module for editing by humans... maybe pickle or a csv module?
-
+"""Line to load the test data:
+import shaft ; o,w = shaft.filtertest()
+"""
 
 # searching, filtering and sorting example data:
 def filtertest():
-    a1 = Official()
-    a1.name = 'a'
+    a1 = Official('a')
     a1.refcert = 1
     a1.nsocert = 1
     a1.games.append(Game('WFTDA', 'Playoff', 'CHR'))
     a1.games.append(Game('WFTDA', 'Sanc', 'IPR'))
-    a2 = Official()
-    a2.name = 'c'
+    a1.games.append(Game('WFTDA', 'Other', 'IPR'))
+    a2 = Official('c')
     a2.refcert = 0
     a2.nsocert= 0
     a2.games.append(Game('WFTDA', 'Playoff', 'OPR'))
     a2.games.append(Game('WFTDA', 'Other', 'OPR'))
     a2.games.append(Game('WFTDA', 'Reg', 'OPR'))
-    a3 = Official()
-    a3.name = 'd'
+    a2.games.append(Game('MRDA','Sanc','JR'))
+    a3 = Official('d')
     a3.refcert = 2
     a3.nsocert = 0
     a3.games.append(Game('WFTDA', 'Sanc', 'JR'))
-    a4 = Official()
-    a4.name = 'b'
+    a4 = Official('b')
     a4.refcert = 2
     a4.nsocert = 0
-    a5 = Official()
-    a5.name = 'e'
+    a5 = Official('e')
     a5.refcert = 0
     a5.nsocert = 1
     a = [a1, a2, a3, a4, a5]
@@ -165,6 +182,7 @@ def filtertest():
     w2 = WeightModel('wstrict')
     w2.wgt['WFTDA']['Other'] = 0
     del(w2.wgt['MRDA'])
+    del(w2.wgt['Other'])
 
     w = [w1,w2]
     # return the same officials array, and weight array
