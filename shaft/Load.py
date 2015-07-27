@@ -24,35 +24,35 @@ roles = config.roles
 # TODO: add in parsing of tournament applicaton sheets (raw or baked)
 
 
-def normalizeCert(certString):
+def normalize_cert(cert_string):
     """
     Takes the cert string from the history, which is a freeform field, and normalizes it to 1-5 or a blank for uncertified
-    :param certString: string taken directly from the history sheet
+    :param cert_string: string taken directly from the history sheet
     :return: None, or 1-5
     """
-    if certString is None:
+    if cert_string is None:
         return None
     # if it's already a number, return an int (if it's < 1 or greater than 5, return None)
-    elif isinstance(certString, float) or isinstance(certString, int):
-        if (certString < 1) or (certString > 5):
+    elif isinstance(cert_string, float) or isinstance(cert_string, int):
+        if (cert_string < 1) or (cert_string > 5):
             return None
         else:
-            return int(certString)
+            return int(cert_string)
     # if it's a string with numbers in it, return the first one
-    numbers = re.findall(r'\d+', certString)
+    numbers = re.findall(r'\d+', cert_string)
     if numbers:
-        return(int(numbers[0]))
+        return int(numbers[0])
     else:
         # there are no numbers in the cell, look for someone spelling out the numbers:
-        if certString.upper() == 'ONE':
+        if cert_string.upper() == 'ONE':
             return 1
-        elif certString.upper() == 'TWO':
+        elif cert_string.upper() == 'TWO':
             return 2
-        elif certString.upper() == 'THREE':
+        elif cert_string.upper() == 'THREE':
             return 3
-        elif certString.upper() == 'FOUR':
+        elif cert_string.upper() == 'FOUR':
             return 4
-        elif certString.upper() == 'FIVE':
+        elif cert_string.upper() == 'FIVE':
             return 5
         else:
             # there are no valid numbers in the string
@@ -103,8 +103,8 @@ def load_file(filename):
             name = wb['Summary']['C3'].value
         # create official object, and fill in metadata
         off = Official(name)
-        off.refcert = (wb['Summary']['C7'].value)
-        off.nsocert = (wb['Summary']['C8'].value)
+        off.refcert = wb['Summary']['C7'].value
+        off.nsocert = wb['Summary']['C8'].value
 
         # go through each game in the Game History tab
         history = wb['Game History']
@@ -142,23 +142,23 @@ def load_file(filename):
             if type not in types:
                 continue
 
-            # main position counts for weighted score
-            posn = entry[8].value
+            # extract the primary role/position (secondary position is handled below)
+            role = entry[8].value
             # skip over rows with no position listed
-            if posn is None:
+            if role is None:
                 continue
             # remove padding whitespace so it can be found in the list of real roles
-            posn = posn.strip()
+            role = role.strip()
             # skip positions abbreviations that don't actually exist
-            if posn not in roles:
+            if role not in roles:
                 continue
 
             # TODO: handle the second position
 
             # create the game
-            off.games.append(Game(assn,type,posn))
+            off.games.append(Game(assn, type, role))
 
-        return(off)
+        return off
     else:
         # no supported version found
         return None
@@ -174,5 +174,5 @@ o,w = shaft.filtertest()
 mh = shaft.load_file('/Users/mcclure/PycharmProjects/local_crewenator/history/Mike Hammer - Game History.xlsx')
 mh.weighting
 
-import shaft ; o,w = shaft.filtertest() ; mh = shaft.load_file('/Users/mcclure/PycharmProjects/local_crewenator/history/Mike Hammer - Game History.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting
+import shaft ; o,w = shaft.filtertest() ; mh = shaft.load_file('sample/MikeHammer_GameHistoryNew.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting
 """

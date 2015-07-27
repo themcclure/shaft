@@ -86,7 +86,6 @@ class WeightModel:
     Each model will have a unique name what will be attached to the Official object so that multiple weighting models can
     be applied and then queried individually to provide a comparison
     """
-    # TODO: ! add in all the rest of the roles in the lists!
     # TODO: !! add in age as a factor
     # TODO: add in default weight models?
     # TODO: add in NSO Families (started with get_roles optionally accepting a list of roles)
