@@ -10,7 +10,9 @@ from shaft import Official
 from shaft import Game
 
 import re
+import os
 import datetime
+from dateutil import relativedelta
 from openpyxl import load_workbook
 from openpyxl import utils
 from openpyxl import Workbook
@@ -20,8 +22,14 @@ assns = config.assns
 types = config.types
 roles = config.roles
 
+# freezeDate is when applications close or when the applications process will start aging games
+# TODO: this should be able to be associated per official, based on an application date
+# TODO: this should be parameterised when the "run everything" command is built
+freezeDate = datetime.date.today()
+
 # TODO: add in live google sheet parsing
 # TODO: add in parsing of tournament applicaton sheets (raw or baked)
+# TODO: iterate through a file to generate the list of officials
 
 
 def normalize_cert(cert_string):
@@ -95,7 +103,6 @@ def load_file(filename):
         # TODO: support the old version of the history doc
         pass
     elif ver == 2:
-        # TODO: support the new version of the history doc
         # extract the official's name
         name = wb['Summary']['C4'].value
         if name is None or name == '':
@@ -108,7 +115,7 @@ def load_file(filename):
 
         # go through each game in the Game History tab
         history = wb['Game History']
-        # TODO: Should be made into a function to go throught he Other tab
+        # TODO: Should be made into a function to go through the Other tab
         for entry in history.rows:
             date = entry[0].value
             # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
@@ -120,6 +127,15 @@ def load_file(filename):
                         continue
                 else:
                     continue
+
+            # calculate the age (in whole years), relative to the freezeDate / today
+            # skipping over games that happen in the "future"
+            date = date.date()
+            if date > freezeDate:
+                continue
+            age = relativedelta.relativedelta(freezeDate, date).years
+
+            # I think these two comments are junk DNA:
             # dateRange = getDateWeight(date,freezeDate)
             # dateWeight = weightArray['age'][dateRange]
             assn = entry[6].value
@@ -153,18 +169,38 @@ def load_file(filename):
             if role not in roles:
                 continue
 
-            # TODO: handle the second position
+            # TODO: !! handle the second position
 
             # create the game
-            off.games.append(Game(assn, type, role))
+            off.games.append(Game(assn, type, role, age))
 
         return off
-    else:
-        # no supported version found
-        return None
+
+    # no supported version found
+    return None
 
 
-# TODO: iterate through a list of some kind
+def load_files_from_dir(history_dir):
+    """
+    Open the given directory and grab all the Officiating history excel files and load them
+    :param history_dir: directory name
+    :return: list of Officials
+    """
+    histories = []
+    # get the list of history docs to process
+    file_list = os.walk(history_dir).next()[2]
+    # remove files that start with a . like .DS_Store and .bashrc etc
+    file_list = [f for f in file_list if not f[0] == '.']
+    print file_list
+    for filename in file_list:
+        print filename
+        h = load_file(history_dir + '/' + filename)
+        if h is not None:
+            histories.append(h)
+
+    return histories
+
+
 
 
 # Some nifty bits of code:
@@ -172,7 +208,8 @@ def load_file(filename):
 import shaft
 o,w = shaft.filtertest()
 mh = shaft.load_file('/Users/mcclure/PycharmProjects/local_crewenator/history/Mike Hammer - Game History.xlsx')
+mh.apply_weight_models(w)
 mh.weighting
 
-import shaft ; o,w = shaft.filtertest() ; mh = shaft.load_file('sample/MikeHammer_GameHistoryNew.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting
+import shaft ; w = shaft.create_weights() ; mh = shaft.load_file('sample/Mike Hammer - Game History - new with future.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting['wstrict']; mh.weighting['std']; mh.weighting['aged']
 """

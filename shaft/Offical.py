@@ -15,9 +15,6 @@ from operator import attrgetter
 
 # CONFIG:
 # list of known Associations, Game Types and Roles
-#assns = ['WFTDA', 'MRDA', 'Other']
-#types = ['Champs', 'Playoff', 'Sanc', 'Reg', 'Other']
-#roles = ['CHR', 'JR', 'OPR']
 import config
 assns = config.assns
 types = config.types
@@ -27,6 +24,7 @@ class Official:
     """The basic official object.
     Contains data about that official, and the set of games they've worked.
     """
+
     def __init__(self, name):
         # basic stats/info about the official
         self.name = name
@@ -55,7 +53,9 @@ class Official:
         """
         for model in models:
             self.weighting[model.name] = {}
+            # iterate through each role for processing
             for r in roles:
+                # lambda magic to reduce through the list of games in that role, and apply weight, and sum the weights
                 self.weighting[model.name][r] = reduce(lambda a,b: a + model.weight(b), self.get_games(r), 0)
 
 
@@ -63,11 +63,12 @@ class Game:
     """
     Each official will have a history made up of many games
     """
-    def __init__(self, assn, type, role):
+    def __init__(self, assn, type, role, age):
         # default values
         self.assn = 'Other'
         self.type = 'Other'
         self.role = None
+        self.age = age
         # override from constructor
         if assn in assns:
             self.assn = assn
@@ -85,15 +86,20 @@ class WeightModel:
     The model describes weight factors that will be applied to each game.
     Each model will have a unique name what will be attached to the Official object so that multiple weighting models can
     be applied and then queried individually to provide a comparison
+    Current factors that can be weighted:
+        - Association (WFTDA, etc)
+        - Type of game (Sanc, Reg, etc)
+        - Age of game (relative to today or otherwise configured freezeDate
+        - Crew Head role bonus
     """
-    # TODO: !! add in age as a factor
     # TODO: add in default weight models?
     # TODO: add in NSO Families (started with get_roles optionally accepting a list of roles)
     # TODO: figure out how to figure out the freeze date
-    def __init__(self, name):
+    def __init__(self, name, ch_uplift=1.2):
         self.wgt = {}
         self.name = name
-        self.ch_uplift = 1.2
+        self.ch_uplift = ch_uplift
+        self.decay = [1]
         for assn in assns:
             if assn not in self.wgt.keys():
                 self.wgt[assn] = {}
@@ -103,7 +109,8 @@ class WeightModel:
     def __repr__(self):
         return "<Weight model %s>" % self.name
 
-    # TODO: add in game mimimums, perhaps a number that represents how far along the slice counts?
+    # TODO: add in game mimimums, and perhaps a number that represents how far along the slice counts (up to Reg, etc)?
+    # TODO: maybe a first stab is that any game counts, so remove them from the model if you don't want them to count!
     def weight(self, game):
         """
         Takes a Game and produces a weighted value for that game, based on the weighting model
@@ -114,8 +121,17 @@ class WeightModel:
             return 0
         if game.type not in self.wgt[game.assn].keys():
             return 0
+
+        # apply the basic weighing of the game and association from the model
         wgt = self.wgt[game.assn][game.type]
-        # TODO: make this configurable in the model?
+
+        # apply the age decay
+        if game.age < len(self.decay):
+            wgt = wgt * self.decay[game.age]
+        else:
+            wgt = wgt * self.decay[-1]
+
+        # apply the CH uplift
         if game.role in ['CHR', 'CHNSO']:
             wgt = wgt * self.ch_uplift
         return wgt
@@ -138,20 +154,20 @@ def filtertest():
     a1 = Official('a')
     a1.refcert = 1
     a1.nsocert = 1
-    a1.games.append(Game('WFTDA', 'Playoff', 'CHR'))
-    a1.games.append(Game('WFTDA', 'Sanc', 'IPR'))
-    a1.games.append(Game('WFTDA', 'Other', 'IPR'))
+    a1.games.append(Game('WFTDA', 'Playoff', 'CHR',0))
+    a1.games.append(Game('WFTDA', 'Sanc', 'IPR',0))
+    a1.games.append(Game('WFTDA', 'Other', 'IPR',0))
     a2 = Official('c')
     a2.refcert = 0
     a2.nsocert= 0
-    a2.games.append(Game('WFTDA', 'Playoff', 'OPR'))
-    a2.games.append(Game('WFTDA', 'Other', 'OPR'))
-    a2.games.append(Game('WFTDA', 'Reg', 'OPR'))
-    a2.games.append(Game('MRDA','Sanc','JR'))
+    a2.games.append(Game('WFTDA', 'Playoff', 'OPR',0))
+    a2.games.append(Game('WFTDA', 'Other', 'OPR',0))
+    a2.games.append(Game('WFTDA', 'Reg', 'OPR',0))
+    a2.games.append(Game('MRDA','Sanc','JR',0))
     a3 = Official('d')
     a3.refcert = 2
     a3.nsocert = 0
-    a3.games.append(Game('WFTDA', 'Sanc', 'JR'))
+    a3.games.append(Game('WFTDA', 'Sanc', 'JR',0))
     a4 = Official('b')
     a4.refcert = 2
     a4.nsocert = 0
@@ -175,18 +191,36 @@ def filtertest():
     f = ifilter(lambda x: attrgetter('refcert')(x) > 0, a)
     print sorted(sorted(f, key=attrgetter('name')), key=attrgetter('refcert'), reverse=True)
 
-    # example weight array
-    w1 = WeightModel('open')
-    w1.wgt['WFTDA']['Playoff'] = 1.2
+    # returns the test officials array, after running the filter code
+    return a
+
+def create_weights():
+    # vanilla model, all 1s (basically a count
+    w1 = WeightModel('std', 1)
+
+    # strict WFTDA only, Regulation or better, standard weights and standard decay
     w2 = WeightModel('wstrict')
+    w2.wgt['WFTDA']['Champs'] = 1.25
+    w2.wgt['WFTDA']['Playoff'] = 1.2
+    w2.wgt['WFTDA']['Reg'] = 0.9
     w2.wgt['WFTDA']['Other'] = 0
     del(w2.wgt['MRDA'])
     del(w2.wgt['Other'])
+    w3 = WeightModel('aged')
+    w3.decay = [1.0, 0.9, 0.2, 0.1]
 
-    w = [w1,w2]
-    # return the same officials array, and weight array
-    return a,w
+    w = [w1,w2,w3]
+
+    # return weight model (array)
+    return w
 
 
 if __name__ == '__main__':
-    filtertest()
+    #o = filtertest()
+    w = create_weights()
+    import Load
+    mh = Load.load_file('../sample/MikeHammer_GameHistoryNew.xlsx')
+    mh.apply_weight_models(w)
+    print mh.weighting['wstrict']
+    print mh.weighting['std']
+    print mh.weighting['aged']
