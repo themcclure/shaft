@@ -1,6 +1,7 @@
 """
-Loading an individual Official's game history, using one of several methods:
- 1/ from a file
+Loading an Official's game history, using one of several methods:
+ 1/ from a file (Excel export)
+ 2/ from a directory of Excel exports
  2/ from google sheet live (FUTURE)
  3/ from tournament application sheet (FUTURE)
 """
@@ -22,10 +23,6 @@ assns = config.assns
 types = config.types
 roles = config.roles
 
-# freezeDate is when applications close or when the applications process will start aging games
-# TODO: this should be able to be associated per official, based on an application date
-# TODO: this should be parameterised when the "run everything" command is built
-freezeDate = datetime.date.today()
 
 # TODO: add in live google sheet parsing
 # TODO: add in parsing of tournament applicaton sheets (raw or baked)
@@ -39,11 +36,11 @@ def normalize_cert(cert_string):
     :return: None, or 1-5
     """
     if cert_string is None:
-        return None
+        return 0
     # if it's already a number, return an int (if it's < 1 or greater than 5, return None)
     elif isinstance(cert_string, float) or isinstance(cert_string, int):
         if (cert_string < 1) or (cert_string > 5):
-            return None
+            return 0
         else:
             return int(cert_string)
     # if it's a string with numbers in it, return the first one
@@ -64,7 +61,7 @@ def normalize_cert(cert_string):
             return 5
         else:
             # there are no valid numbers in the string
-            return None
+            return 0
 
 
 def get_version(workbook):
@@ -91,10 +88,11 @@ def get_version(workbook):
         return None
 
 
-def load_file(filename):
+def load_file(filename, freezeDate=datetime.date.today()):
     """
     Loads an official's history document from an exported Excel file and returns it as a raw Official object
     :param filename: file location of the excel file
+    :param freezeDate: the date to measure the age of games
     :return: Official object
     """
     wb = load_workbook(filename, data_only=True, read_only=True)
@@ -110,12 +108,13 @@ def load_file(filename):
             name = wb['Summary']['C3'].value
         # create official object, and fill in metadata
         off = Official(name)
-        off.refcert = wb['Summary']['C7'].value
-        off.nsocert = wb['Summary']['C8'].value
+        off.refcert = normalize_cert(wb['Summary']['C7'].value)
+        off.nsocert = normalize_cert(wb['Summary']['C8'].value)
 
         # go through each game in the Game History tab
         history = wb['Game History']
-        # TODO: Should be made into a function to go through the Other tab
+        # TODO: Should be made into a function to go through the Other tab... maybe primacy 3, so easily filtered?
+        # TODO: like, (date, assn, type, role, secondary_role) = process_row(entry) - that way the Other tab can be processed just fine
         for entry in history.rows:
             date = entry[0].value
             # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
@@ -135,9 +134,6 @@ def load_file(filename):
                 continue
             age = relativedelta.relativedelta(freezeDate, date).years
 
-            # I think these two comments are junk DNA:
-            # dateRange = getDateWeight(date,freezeDate)
-            # dateWeight = weightArray['age'][dateRange]
             assn = entry[6].value
             if assn:
                 assn = assn.strip()
@@ -169,10 +165,19 @@ def load_file(filename):
             if role not in roles:
                 continue
 
-            # TODO: !! handle the second position
+            # extract the secondary role/position (secondary position is handled below)
+            secondary = entry[9].value
+            # remove padding whitespace so it can be found in the list of real roles
+            if secondary is not None:
+                secondary = secondary.strip()
 
-            # create the game
-            off.games.append(Game(assn, type, role, age))
+            # create the primary game
+            off.add_game(Game(assn, type, role, age, 1))
+
+            # create the secondary game
+            secondary_game = Game(assn, type, secondary, age, 2)
+            if secondary_game.primacy is not None:
+                off.add_game(secondary_game)
 
         return off
 
@@ -180,10 +185,11 @@ def load_file(filename):
     return None
 
 
-def load_files_from_dir(history_dir):
+def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     """
     Open the given directory and grab all the Officiating history excel files and load them
     :param history_dir: directory name
+    :param freezeDate: the date to measure the age of games
     :return: list of Officials
     """
     histories = []
@@ -191,10 +197,10 @@ def load_files_from_dir(history_dir):
     file_list = os.walk(history_dir).next()[2]
     # remove files that start with a . like .DS_Store and .bashrc etc
     file_list = [f for f in file_list if not f[0] == '.']
-    print file_list
+    #print file_list
     for filename in file_list:
         print filename
-        h = load_file(history_dir + '/' + filename)
+        h = load_file(history_dir + '/' + filename, freezeDate)
         if h is not None:
             histories.append(h)
 
@@ -211,5 +217,5 @@ mh = shaft.load_file('/Users/mcclure/PycharmProjects/local_crewenator/history/Mi
 mh.apply_weight_models(w)
 mh.weighting
 
-import shaft ; w = shaft.create_weights() ; mh = shaft.load_file('sample/Mike Hammer - Game History - new with future.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting['wstrict']; mh.weighting['std']; mh.weighting['aged']
+import shaft ; w = shaft.create_weights() ; mh = shaft.load_file('sample/Mike Hammer - Game History - new with future.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting['wstrict']; mh.weighting['std']
 """
