@@ -8,7 +8,7 @@ __author__ = 'hammer'
 from itertools import ifilter, ifilterfalse
 from operator import attrgetter, methodcaller
 
-# TODO: introspect certain information... such as "how many years they've been officiating sanctioned play"
+# TODO: OPTIONAL: introspect certain information... such as "how many years they've been officiating sanctioned play"
 
 
 # CONFIG:
@@ -123,7 +123,7 @@ class Official:
         summary = [self.name, self.refcert, self.nsocert, self.game_tally]
         return summary
 
-    # TODO: put this in config as a dict of header/attribute pairs so dict.keys() gets the header row and dict.values() & getattr returns the values row
+    # TODO: FUTURE: put this in config as a dict of header/attribute pairs so dict.keys() gets the header row and dict.values() & getattr returns the values row
     def get_summary_header(self):
         """
         Gets the header line for the summary of the entire Official, most notably for printing
@@ -144,7 +144,7 @@ class Official:
             summary = [self.name, self.refcert, self.weighting[model][role], self.qualified_games[model][role]]
         return summary
 
-    # TODO: put this in config as a dict of header/attribute pairs so dict.keys() gets the header row and dict.values() & getattr returns the values row
+    # TODO: FUTURE: put this in config as a dict of header/attribute pairs so dict.keys() gets the header row and dict.values() & getattr returns the values row
     def get_role_header(self):
         """
         Gets the header line for the role view of the Official, most notably for printing

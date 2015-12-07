@@ -6,11 +6,12 @@ We have several parts:
 - summarise a list of officials from a given directory
 - standard options for processing
 - process tournament application sheets (not implemented)
-- save sheet summarizing officials (not implemented)
+- save sheet summarizing officials
 """
 __author__ = 'hammer'
+__version__ = 0.5
 
-# TODO: add in game mimimums, implemented as a filter like: qualify_roles(game_min=5, max_age=2, cert_min=0, assns=['WFTDA'], type=config.types[:4])
+# TODO: FUTURE: OPTIONAL: add in game mimimums - currently can filter out in the spreadsheet, no need to here. Probably not until application processing is automated
 
 
 from shaft.Offical import Official

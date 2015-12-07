@@ -5,11 +5,13 @@ from operator import attrgetter, methodcaller
 
 
 # sample weightings
+weights = []
 weights = shaft.create_weights()
 weights[2].secondary_weight = 0.9
+weights[2].tertiary_weight = 0.1
 
 # set the freeze date of the applications
-# TODO: currently just a single date for each applicant, make it able to be unique per applicant (probably as part of processing a file of applicants
+# TODO: FUTURE: currently just a single date for each applicant, make it able to be unique per applicant (probably as part of processing a file of applicants
 #freezeDate = datetime.date(2015,6,1)
 freezeDate = datetime.date.today()
 
@@ -17,7 +19,10 @@ freezeDate = datetime.date.today()
 #mh.apply_weight_models(w)
 
 #o = shaft.load_files_from_dir('sample', freezeDate)
-o = shaft.load_files_from_dir('champs', freezeDate)
+#o = shaft.load_files_from_dir('champs', freezeDate)
+o = shaft.load_files_from_dir('CC2016', freezeDate)
+#o = shaft.load_files_from_dir('test', freezeDate)
+
 for i in o:
     i.apply_weight_models(weights)
 
@@ -44,4 +49,4 @@ if __name__ == '__main__':
 
     filename_base = 'test'
     for w in weights:
-        shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w.name)
+        shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w)

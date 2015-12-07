@@ -24,9 +24,9 @@ types = config.types
 roles = config.roles
 
 
-# TODO: add in live google sheet parsing
-# TODO: add in parsing of tournament applicaton sheets (raw or baked)
-# TODO: iterate through a file to generate the list of officials
+# TODO: FUTURE: add in live google sheet parsing
+# TODO: FUTURE: add in parsing of tournament applicaton sheets (raw or baked)
+# TODO: FUTURE: OPTIONAL: iterate through a file to generate the list of officials
 
 
 def normalize_cert(cert_string):
@@ -75,6 +75,9 @@ def get_version(workbook):
         if 'WFTDA Referee' in workbook.get_sheet_names() or 'WFTDA NSO' in workbook.get_sheet_names():
             # this is an old history doc but it's been modified to change the WFTDA Summary tab name
             return None
+        elif 'Instructions' not in workbook.get_sheet_names():
+            # this is a new history doc it's been modified to delete the instructions tab (a no no)
+            return None
         elif workbook['Instructions']['A1'].value == 'Loading...':
             # found one instance where the Instructions tab was showing "loading" - at the moment this will only happen on the new sheets
             return 2
@@ -98,7 +101,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
     wb = load_workbook(filename, data_only=True, read_only=True)
     ver = get_version(wb)
     if ver == 1:
-        # TODO: support the old version of the history doc
+        # TODO: OPTIONAL: support the old version of the history doc
         pass
     elif ver == 2:
         # extract the official's name
@@ -113,9 +116,12 @@ def load_file(filename, freezeDate=datetime.date.today()):
 
         # go through each game in the Game History tab
         history = wb['Game History']
-        # TODO: Should be made into a function to go through the Other tab... maybe primacy 3, so easily filtered?
-        # TODO: like, (date, assn, type, role, secondary_role) = process_row(entry) - that way the Other tab can be processed just fine
+        # TODO: OPTIONAL: Should be made into a function to go through the Other tab... maybe primacy 3, so easily filtered?
+        # TODO: OPTIONAL: like, (date, assn, type, role, secondary_role) = process_row(entry) - that way the Other tab can be processed just fine
         for entry in history.rows:
+            # skip entirely blank lines
+            if len(entry) == 0:
+                continue
             date = entry[0].value
             # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
             if not isinstance(date, datetime.date):
