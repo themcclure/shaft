@@ -102,7 +102,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
     ver = get_version(wb)
     if ver == 1:
         # TODO: OPTIONAL: support the old version of the history doc
-        pass
+        print "**** OLD History Doc found: %s" % filename
+        return None
     elif ver == 2:
         # extract the official's name
         name = wb['Summary']['C4'].value
@@ -224,4 +225,87 @@ mh.apply_weight_models(w)
 mh.weighting
 
 import shaft ; w = shaft.create_weights() ; mh = shaft.load_file('sample/Mike Hammer - Game History - new with future.xlsx') ; mh ; mh.apply_weight_models(w); mh.weighting['wstrict']; mh.weighting['std']
+"""
+
+
+"""
+This from the old way of doing things - but this is the code that parses the old format:
+# parses the old sheets (since ref and NSO tabs are the same, just on different sheets) and populates the gameRoleCount
+def getRoleCountFromOldSheet(history, freezeDate, minPosGames, gameRoleCount, weightArray, gameCountArray):
+    # have to modify the num*Games variables this way to make them effectively pass-by-reference
+    numGames = 0
+    numQualGames = 0
+
+    for entry in history.rows:
+        date = entry[0].value
+        # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
+        if not isinstance(date, datetime.date):
+            if isinstance(date, float):
+                date = utils.datetime.from_excel(date)
+            else:
+                continue
+
+        dateRange = getDateWeight(date,freezeDate)
+        dateWeight = weightArray['age'][dateRange]
+        assn = 'WFTDA'
+        assnWeight = weightArray['assn'][assn]
+
+        # have to pick game type and position out of 4 columns. Only one entry can count, so we don't check for multiple
+        if entry[6].value:
+            posn = entry[6].value.upper()
+            type = 'Playoff'
+        elif entry[7].value:
+            posn = entry[7].value.upper()
+            type = 'Sanc'
+        elif entry[8].value:
+            posn = entry[8].value.upper()
+            type = 'Reg'
+        elif entry[9].value:
+            posn = entry[9].value.upper()
+            type = 'Other'
+        else:
+            # skip over rows with no position listed
+            continue
+
+        # remove positions with whitespace
+        # TODO: found in JewJew
+        posn = posn.strip()
+
+        # convert from ALT to ALTR/ALTN
+        if posn == 'ALT':
+            if history.title == 'WFTDA Referee':
+                posn = 'ALTR'
+            else:
+                posn = 'ALTN'
+
+        typeWeight = weightArray['type'][type]
+
+
+        # raw number of games
+        numGames += 1
+
+        # skip positions abbreviations that don't actually exist
+        # TODO: found in Apron & Turtle
+        if posn not in gameRoleCount[assn].keys():
+            continue
+
+        # assign game weighting
+        gameWeight = dateWeight * assnWeight * typeWeight
+        gameRoleCount[assn][posn][1] += gameWeight
+        #print gameWeight
+
+        # count of the number of games worked in a position ... but only Playoff, Sanc or Reg games that are recent or relevant
+        if (type is not 'Other') and (dateRange == "recent" or dateRange == "relevant"):
+            numQualGames += 1
+            gameRoleCount[assn][posn][0] += 1
+            if gameRoleCount[assn][posn][0] >= minPosGames:
+                gameRoleCount[assn][posn][2] = True
+
+        # if the minimum number of games is 0, then everyone should qualify for any role they've worked!
+        if minPosGames == 0:
+            gameRoleCount[assn][posn][2] = True
+
+    gameCountArray[0] += numGames
+    gameCountArray[1] += numQualGames
+
 """
