@@ -121,6 +121,8 @@ class Official:
         :return: list of all the relevant attributes and scores in the order they're listed in the config file
         """
         summary = [self.name, self.refcert, self.nsocert, self.game_tally]
+        for r in roles:
+            summary.append(self.weighting[model][r])
         return summary
 
     # TODO: FUTURE: put this in config as a dict of header/attribute pairs so dict.keys() gets the header row and dict.values() & getattr returns the values row
@@ -129,7 +131,8 @@ class Official:
         Gets the header line for the summary of the entire Official, most notably for printing
         :return: list of all the relevant header labels in the order they're listed in the config file
         """
-        return ['Name', 'Ref Cert', 'NSO Cert', 'Total Games']
+        basic = ['Name', 'Ref Cert', 'NSO Cert', 'Total Games']
+        return basic + roles
 
     def get_role_summary(self, role, model):
         """
@@ -347,12 +350,19 @@ def create_weights():
     w4 = WeightModel('full')
     w4.wgt['WFTDA']['Champs'] = 1.25
     w4.wgt['WFTDA']['Playoff'] = 1.2
+    w4.wgt['WFTDA']['Sanc'] = 1.0
     w4.wgt['WFTDA']['Reg'] = 0.9
     w4.wgt['WFTDA']['Other'] = 0.1
-    w4.wgt['MRDA']['Champs'] = 1.1
-    w4.wgt['MRDA']['Playoff'] = 1.1
-    w4.wgt['MRDA']['Reg'] = 0.8
+    w4.wgt['MRDA']['Champs'] = 1.0
+    w4.wgt['MRDA']['Playoff'] = 0.9
+    w4.wgt['MRDA']['Sanc'] = 0.7
+    w4.wgt['MRDA']['Reg'] = 0.4
     w4.wgt['MRDA']['Other'] = 0.1
+    w4.wgt['Other']['Champs'] = 0.5
+    w4.wgt['Other']['Playoff'] = 0.5
+    w4.wgt['Other']['Sanc'] = 0.2
+    w4.wgt['Other']['Reg'] = 0.1
+    w4.wgt['Other']['Other'] = 0.01
     w4.decay = [1.0, 0.9, 0.2, 0.1]
 
     w = [w1,w2,w4]

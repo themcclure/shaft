@@ -20,8 +20,9 @@ freezeDate = datetime.date.today()
 
 #o = shaft.load_files_from_dir('sample', freezeDate)
 #o = shaft.load_files_from_dir('champs', freezeDate)
-o = shaft.load_files_from_dir('CC2016', freezeDate)
 #o = shaft.load_files_from_dir('test', freezeDate)
+dir_name = 'CC2016'
+o = shaft.load_files_from_dir(dir_name, freezeDate)
 
 for i in o:
     i.apply_weight_models(weights)
@@ -47,6 +48,6 @@ if __name__ == '__main__':
         print r
         print shaft.sort_by_role(o, r, 'full')
 
-    filename_base = 'test'
+    filename_base = dir_name
     for w in weights:
         shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w)
