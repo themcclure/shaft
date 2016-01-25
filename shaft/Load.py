@@ -111,7 +111,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
             # fall back to real name
             name = wb['Summary']['C3'].value
         # create official object, and fill in metadata
-        off = Official(name)
+        off = Official(unicode(name))
         off.refcert = normalize_cert(wb['Summary']['C7'].value)
         off.nsocert = normalize_cert(wb['Summary']['C8'].value)
 

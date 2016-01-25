@@ -9,6 +9,7 @@ from itertools import ifilter, ifilterfalse
 from operator import attrgetter, methodcaller
 
 # TODO: OPTIONAL: introspect certain information... such as "how many years they've been officiating sanctioned play"
+# TODO: OPTIONAL: FUTURE: keep track (and a count) of the distinct tournament names as a guide to how well travelled they are
 
 
 # CONFIG:
@@ -40,7 +41,7 @@ class Official:
         self.qualified_games = {}
 
     def __repr__(self):
-        return "<name: %s, refcert %d, nsocert: %d, games %d>" % (self.name, self.refcert, self.nsocert, self.game_tally)
+        return "<name: %r, refcert %d, nsocert: %d, games %d>" % (self.name, self.refcert, self.nsocert, self.game_tally)
 
     def add_game(self, game):
         """
@@ -332,15 +333,20 @@ def filtertest():
     return a
 
 def create_weights():
-    # vanilla model, all 1s (basically a count
+    '''
+    Create the default set of weighting models
+    :return: returns an list of weight models
+    '''
+    # vanilla model, all 1s (basically a count of the number of games worked with no age decay)
     w1 = WeightModel('std', 1)
 
-    # strict WFTDA only, Regulation or better, standard weights and standard decay
+    # strict WFTDA only, Regulation or better, standard weights and standard age decay
     w2 = WeightModel('wstrict')
     w2.wgt['WFTDA']['Champs'] = 1.25
     w2.wgt['WFTDA']['Playoff'] = 1.2
     w2.wgt['WFTDA']['Reg'] = 0.9
     w2.wgt['WFTDA']['Other'] = 0
+    w2.decay = [1.0, 0.9, 0.2, 0.1]
     del(w2.wgt['MRDA'])
     del(w2.wgt['Other'])
 

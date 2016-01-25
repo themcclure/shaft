@@ -13,6 +13,8 @@ __version__ = 0.5
 
 # TODO: FUTURE: OPTIONAL: add in game mimimums - currently can filter out in the spreadsheet, no need to here. Probably not until application processing is automated
 
+# TODO: Is the Association weighting very different for NSOs? It is a different game for refs... but maybe less so for NSOs
+
 
 from shaft.Offical import Official
 from shaft.Offical import Game
