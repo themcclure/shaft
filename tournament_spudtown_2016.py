@@ -17,7 +17,7 @@ weights[2].tertiary_weight = 0.1
 freezeDate = datetime.date(2016,1,10)
 
 dir_name = 'ST2016'
-o = shaft.load_files_from_dir(dir_name, freezeDate)
+o, rejects = shaft.load_files_from_dir(dir_name, freezeDate)
 
 for i in o:
     i.apply_weight_models(weights)
@@ -45,6 +45,11 @@ if __name__ == '__main__':
             print r
             print shaft.sort_by_role(o, r, 'full')
 
+    # write out a file per weighting schema
     filename_base = dir_name
     for w in weights:
         shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w)
+
+    # write out a file of all the rejected files (and why)
+    shaft.create_rejects(filename_base + '-rejects.xlsx', rejects)
+

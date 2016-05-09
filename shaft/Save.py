@@ -92,3 +92,26 @@ def create_results(file_name, officials, model):
 
     # save the file
     wb.save(file_name)
+
+
+def create_rejects(file_name, rejects):
+    '''
+    Creates a file with the rejected file names, and the reson for rejection
+    :param file_name: filename to write to
+    :param rejects: list of tuples (history file, reject reason)
+    :return: None
+    '''
+
+    # TODO: set up the file so it reads in existing file, and write out the new file, including manually caught errors (like permissions or something)
+
+    # set up the rejects file
+    wb = Workbook()
+    page1 = wb.active
+    page1.title = "Unprocessed Applicants"
+    wb['Unprocessed Applicants'].append(['History Document', 'Error'])
+
+    for r in rejects:
+        wb['Unprocessed Applicants'].append(r)
+
+    # save the file
+    wb.save(file_name)

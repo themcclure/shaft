@@ -25,6 +25,7 @@ from shaft.Offical import sort_by_role
 from shaft.Load import load_file
 from shaft.Load import load_files_from_dir
 from shaft.Save import create_results
+from shaft.Save import create_rejects
 from shaft.config import roles, ref_roles, nso_roles, nso_family
 
 

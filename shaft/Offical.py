@@ -145,7 +145,7 @@ class Official:
         if role in config.ref_roles:
             summary = [self.name, self.refcert, self.weighting[model][role], self.qualified_games[model][role]]
         else:
-            summary = [self.name, self.refcert, self.weighting[model][role], self.qualified_games[model][role]]
+            summary = [self.name, self.nsocert, self.weighting[model][role], self.qualified_games[model][role]]
         return summary
 
     # TODO: FUTURE: put this in config as a dict of header/attribute pairs so dict.keys() gets the header row and dict.values() & getattr returns the values row

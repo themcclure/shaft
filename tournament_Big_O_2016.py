@@ -27,7 +27,7 @@ weights[2].wgt['MRDA']['Other'] = 0
 freezeDate = datetime.date(2016,1,17)
 
 dir_name = 'BO2016'
-o = shaft.load_files_from_dir(dir_name, freezeDate)
+o, rejects = shaft.load_files_from_dir(dir_name, freezeDate)
 
 for i in o:
     i.apply_weight_models(weights)
@@ -58,3 +58,7 @@ if __name__ == '__main__':
     filename_base = dir_name
     for w in weights:
         shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w)
+
+    # write out a file of all the rejected files (and why)
+    shaft.create_rejects(filename_base + '-rejects.xlsx', rejects)
+

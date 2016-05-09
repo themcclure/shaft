@@ -200,6 +200,7 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     :return: list of Officials
     """
     histories = []
+    rejects = []
     # get the list of history docs to process
     file_list = os.walk(history_dir).next()[2]
     # remove files that start with a . like .DS_Store and .bashrc etc
@@ -210,8 +211,10 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
         h = load_file(history_dir + '/' + filename, freezeDate)
         if h is not None:
             histories.append(h)
+        else:
+            rejects.append((filename, "unsupported document version"))
 
-    return histories
+    return histories, rejects
 
 
 
