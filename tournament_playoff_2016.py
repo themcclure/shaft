@@ -29,8 +29,11 @@ weights.append(w)
 # this is the date applications were initially assessed and downloaded, so everyone should be held against that date so I don't have to download more recent ones all the time
 freezeDate = datetime.date(2016,5,9)
 
+dir_path = ''
 dir_name = 'Playoff2016Lansing'
-o, rejects = shaft.load_files_from_dir(dir_name, freezeDate)
+dir_path = '/Users/mcclure/Google Drive/TOSP/2016/2016 Selections/'
+dir_name = 'Applicant History Docs'
+o, rejects = shaft.load_files_from_dir(dir_path + dir_name, freezeDate)
 
 for i in o:
     i.apply_weight_models(weights)
@@ -58,7 +61,7 @@ if __name__ == '__main__':
             print r
             print shaft.sort_by_role(o, r, 'full')
 
-    filename_base = dir_name
+    filename_base = dir_path + dir_name + '/_' + dir_name
     for w in weights:
         shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w)
 

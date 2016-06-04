@@ -83,6 +83,8 @@ def get_version(workbook):
             return 2
         elif 'Last Revised 2015' in workbook['Instructions']['A104'].value:
             return 2
+        elif 'Last Revised 2016' in workbook['Instructions']['A104'].value:
+            return 3
         else:
             return None
     elif 'WFTDA Summary' in workbook.get_sheet_names():
@@ -104,10 +106,10 @@ def load_file(filename, freezeDate=datetime.date.today()):
         # TODO: OPTIONAL: support the old version of the history doc
         print "**** OLD History Doc found: %s" % filename
         return None
-    elif ver == 2:
+    elif (ver == 2) or (ver ==3):
         # extract the official's name
         name = wb['Summary']['C4'].value
-        if name is None or name == '':
+        if name is None or name == '' or name == '-':
             # fall back to real name
             name = wb['Summary']['C3'].value
         # create official object, and fill in metadata
@@ -205,8 +207,18 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     file_list = os.walk(history_dir).next()[2]
     # remove files that start with a . like .DS_Store and .bashrc etc
     file_list = [f for f in file_list if not f[0] == '.']
+
     #print file_list
     for filename in file_list:
+        # skip over files that begin with _ (such as output from this tool)
+        if filename[0] == '_':
+            continue
+        # skip over filenames that aren't long enough to be real files
+        elif len(filename) < 6:
+            continue
+        # skip files that do not end with a .xlsx
+        elif filename[-5:] != '.xlsx':
+            continue
         print filename
         h = load_file(history_dir + '/' + filename, freezeDate)
         if h is not None:
