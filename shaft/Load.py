@@ -85,6 +85,8 @@ def get_version(workbook):
             return 2
         elif 'Last Revised 2016' in workbook['Instructions']['A104'].value:
             return 3
+        elif 'Last Revised 2017-01-05' in workbook['Instructions']['A104'].value:
+            return 4
         else:
             return None
     elif 'WFTDA Summary' in workbook.get_sheet_names():
@@ -106,7 +108,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
         # TODO: OPTIONAL: support the old version of the history doc
         print "**** OLD History Doc found: %s" % filename
         return None
-    elif (ver == 2) or (ver ==3):
+    elif (ver == 2) or (ver == 3) or (ver == 4):
         # extract the official's name
         name = wb['Summary']['C4'].value
         if name is None or name == '' or name == '-':
@@ -227,6 +229,31 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
             rejects.append((filename, "unsupported document version"))
 
     return histories, rejects
+
+import gspread
+from oauth2client.client import AccessTokenCredentials
+
+def load_google_sheet(url, token, freezeDate=datetime.date.today()):
+    """
+    Loads an official's history document from a live google sheet and returns it as a raw Official object
+    :param url: the URL of history doc
+    :param token: the security token required
+    :param freezeDate: the date to measure the age of games
+    :return: Official object
+    """
+    access_token = "ya29.Ci8uA-oQLfvo_NIVOh6ayWiNadGSt52xcN8TUY97ywsBMrwJOFdiXr_yeTdbdXXh0A"
+    refresh_token = "1/EoXmQmxwjPGsGsyxB7wJ630dLVJrrU29Ff3lcZ8aubE"
+    mike_url = "https://docs.google.com/spreadsheets/d/1kG9QTdus7LbpZP-3L9fNvwQ0nVpUUXyw7m7hpKSBH-E/edit#gid=2008460745"
+    aggie_url = "https://docs.google.com/spreadsheets/d/1f9do7TIC31ktgCww0Sw1kvEl7bQc6RPCMExFhfR7cso/edit#gid=1988016352"
+    clobber_url = "https://docs.google.com/spreadsheets/d/1kbScLowzIzpDkKtr9eO9MvWnaGdG3V4RDzQqV_KOcso/edit#gid=1988016352"
+    urls = [mike_url, aggie_url, clobber_url]
+    creds = AccessTokenCredentials(access_token, 'Agent/1.0')
+    gs = gspread.authorize(creds)
+    wb = gs.open_by_url(urls[url])
+
+    return wb
+
+
 
 
 
