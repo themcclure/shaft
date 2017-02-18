@@ -115,3 +115,70 @@ def create_rejects(file_name, rejects):
 
     # save the file
     wb.save(file_name)
+
+
+def create_raw_results(file_name, officials, model):
+    """
+    create the Excel file giving a raw dump of the officials, given the chosen weighting model
+    :param file_name: the name of the file to output
+    :param officials: the list of officials
+    :param model: the weighting model to use
+    :return: the excel object (for now)
+    """
+    order = 0
+    wb = Workbook()
+    page1 = wb.active
+    page1.title = "Applicants (RAW)"
+
+    # header row for all the game data, smooshed with the core official data
+    header = []
+    header.append('name')
+    header.append('refcert')
+    header.append('ref_tally')
+    header.append('nsocert')
+    header.append('nso_tally')
+    wb['Applicants (RAW)'].append(header)
+
+    wb.create_sheet(1,'Games (RAW)')
+    header = []
+    header.append('name')
+    header.append('assn')
+    header.append('age')
+    header.append('date')
+    header.append('type')
+    header.append('role')
+    header.append('value')
+    header.append('event')
+    header.append('primacy')
+    wb['Games (RAW)'].append(header)
+
+    # print summary of entire list, sorted by name
+    for off in sorted(officials, key=attrgetter('name')):
+        # print the official info in the applicants tab
+        print off
+        official_denormalized = []
+        official_denormalized.append(off.name)
+        official_denormalized.append(off.refcert)
+        official_denormalized.append(off.ref_tally)
+        official_denormalized.append(off.nsocert)
+        official_denormalized.append(off.nso_tally)
+        wb['Applicants (RAW)'].append(official_denormalized)
+
+        # print the game data in the games tab, official's name is the joining key
+        for j in off.games:
+            game_denormalized = []
+            game_denormalized.append(off.name)
+            game_denormalized.append(j.assn)
+            game_denormalized.append(j.age)
+            game_denormalized.append(j.date)
+            game_denormalized.append(j.type)
+            game_denormalized.append(j.role)
+            game_denormalized.append(model.weight(j))
+            #game_denormalized.append(j.event)
+            game_denormalized.append('')
+            game_denormalized.append(j.primacy)
+            #print "name = %s, role = %s, on %s" % (game_denormalized[0], game_denormalized[5], game_denormalized[3])
+            wb['Games (RAW)'].append(game_denormalized)
+
+    # save the file
+    wb.save(file_name)

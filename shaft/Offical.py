@@ -163,12 +163,13 @@ class Game:
         Age is the the number of whole years since the reference date (freezeDate)
         Primacy is 1 for games worked in the primary position, 2 for secondary positions
     """
-    def __init__(self, assn, type, role, age, primacy):
+    def __init__(self, assn, type, role, age, primacy, date):
         # default "error" values
         self.assn = None
         self.type = None
         self.role = None
         self.age = None
+        self.date = None
         self.primacy = None
 
         # if all the inputs are valid, then populate the data
@@ -177,6 +178,7 @@ class Game:
             self.type = type
             self.role = role
             self.age = age
+            self.date = date
             self.primacy = primacy
 
     def __repr__(self):

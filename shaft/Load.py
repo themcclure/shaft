@@ -183,10 +183,10 @@ def load_file(filename, freezeDate=datetime.date.today()):
                 secondary = secondary.strip()
 
             # create the primary game
-            off.add_game(Game(assn, type, role, age, 1))
+            off.add_game(Game(assn, type, role, age, 1, date))
 
             # create the secondary game
-            secondary_game = Game(assn, type, secondary, age, 2)
+            secondary_game = Game(assn, type, secondary, age, 2, date)
             if secondary_game.primacy is not None:
                 off.add_game(secondary_game)
 
