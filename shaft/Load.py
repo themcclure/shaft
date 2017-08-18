@@ -210,7 +210,7 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     # remove files that start with a . like .DS_Store and .bashrc etc
     file_list = [f for f in file_list if not f[0] == '.']
 
-    #print file_list
+    print file_list
     for filename in file_list:
         # skip over files that begin with _ (such as output from this tool)
         if filename[0] == '_':
@@ -230,8 +230,10 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
 
     return histories, rejects
 
+
 import gspread
 from oauth2client.client import AccessTokenCredentials
+
 
 def load_google_sheet(url, token, freezeDate=datetime.date.today()):
     """

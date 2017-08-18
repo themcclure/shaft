@@ -25,6 +25,7 @@ ref_roles = config.ref_roles
 nso_roles = config.nso_roles
 nso_family = config.nso_family
 
+
 def create_results(file_name, officials, model):
     """
     create the Excel file summarizing the officials, given the chosen weighting model
