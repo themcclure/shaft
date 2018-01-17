@@ -114,6 +114,9 @@ def load_file(filename, freezeDate=datetime.date.today()):
         if name is None or name == '' or name == '-':
             # fall back to real name
             name = wb['Summary']['C3'].value
+        if name is None or name == '' or name == '-':
+            # fall back to file name
+            name = filename
         # create official object, and fill in metadata
         off = Official(unicode(name))
         off.refcert = normalize_cert(wb['Summary']['C7'].value)
@@ -145,13 +148,18 @@ def load_file(filename, freezeDate=datetime.date.today()):
                 continue
             age = relativedelta.relativedelta(freezeDate, date).years
 
+            if len(entry) < 6:
+                continue
             assn = entry[6].value
+
             if assn:
                 assn = assn.strip()
             # if we don't recognize the association, use 'Other'
             if assn not in assns:
                 assn = 'Other'
 
+            if len(entry) < 7:
+                continue
             type = entry[7].value
             # remove entries with no game type entered
             if type is None:
@@ -166,6 +174,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
                 continue
 
             # extract the primary role/position (secondary position is handled below)
+            if len(entry) < 8:
+                continue
             role = entry[8].value
             # skip over rows with no position listed
             if role is None:
@@ -177,6 +187,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
                 continue
 
             # extract the secondary role/position (secondary position is handled below)
+            if len(entry) < 9:
+                continue
             secondary = entry[9].value
             # remove padding whitespace so it can be found in the list of real roles
             if secondary is not None:
