@@ -1,4 +1,4 @@
-"""Module for the Offical class and utilities to house all the information in an official's officiating history document
+"""Module for the Official class and utilities to house all the information in an official's officiating history document
 
 Theory is to keep all the raw data in summary form, and add the weighted values as well, that way either set of data can be used.
 Possibly ALL the weighting models can be applied on input and just used as needed?
@@ -156,6 +156,7 @@ class Official:
         """
         return ['Name', 'Cert', 'Weighted Value', 'Qualified Games']
 
+
 class Game:
     """
     Each official will have a history made up of many games
@@ -163,7 +164,7 @@ class Game:
         Age is the the number of whole years since the reference date (freezeDate)
         Primacy is 1 for games worked in the primary position, 2 for secondary positions
     """
-    def __init__(self, assn, type, role, age, primacy, date):
+    def __init__(self, assn, type, role, age, primacy, date, event):
         # default "error" values
         self.assn = None
         self.type = None
@@ -171,6 +172,7 @@ class Game:
         self.age = None
         self.date = None
         self.primacy = None
+        self.event = None
 
         # if all the inputs are valid, then populate the data
         if (assn in assns) and (type in types) and (role in roles) and (age >= 0) and (primacy >= 1):
@@ -180,6 +182,7 @@ class Game:
             self.age = age
             self.date = date
             self.primacy = primacy
+            self.event = event
 
     def __repr__(self):
         return "<Assn %s, Role %s>" % (self.assn, self.role)
@@ -289,6 +292,7 @@ class WeightModel:
 import shaft ; o,w = shaft.filtertest()
 """
 
+
 # searching, filtering and sorting example data:
 def filtertest():
     a1 = Official('a')
@@ -340,7 +344,7 @@ def create_weights():
     :return: returns an list of weight models
     '''
     # vanilla model, all 1s (basically a count of the number of games worked with no age decay)
-    w1 = WeightModel('std', 1)
+    # w1 = WeightModel('std', 1)
 
     # strict WFTDA only, Regulation or better, standard weights and standard age decay
     w2 = WeightModel('wstrict')
@@ -355,25 +359,26 @@ def create_weights():
     #w3 = WeightModel('aged')
     #w3.decay = [1.0, 0.9, 0.2, 0.1]
 
-    w4 = WeightModel('full')
-    w4.wgt['WFTDA']['Champs'] = 1.25
-    w4.wgt['WFTDA']['Playoff'] = 1.2
-    w4.wgt['WFTDA']['Sanc'] = 1.0
-    w4.wgt['WFTDA']['Reg'] = 0.9
-    w4.wgt['WFTDA']['Other'] = 0.1
-    w4.wgt['MRDA']['Champs'] = 1.0
-    w4.wgt['MRDA']['Playoff'] = 0.9
-    w4.wgt['MRDA']['Sanc'] = 0.7
-    w4.wgt['MRDA']['Reg'] = 0.4
-    w4.wgt['MRDA']['Other'] = 0.1
-    w4.wgt['Other']['Champs'] = 0.5
-    w4.wgt['Other']['Playoff'] = 0.5
-    w4.wgt['Other']['Sanc'] = 0.2
-    w4.wgt['Other']['Reg'] = 0.1
-    w4.wgt['Other']['Other'] = 0.01
-    w4.decay = [1.0, 0.9, 0.2, 0.1]
-
-    w = [w1,w2,w4]
+    # w4 = WeightModel('full')
+    # w4.wgt['WFTDA']['Champs'] = 1.25
+    # w4.wgt['WFTDA']['Playoff'] = 1.2
+    # w4.wgt['WFTDA']['Sanc'] = 1.0
+    # w4.wgt['WFTDA']['Reg'] = 0.9
+    # w4.wgt['WFTDA']['Other'] = 0.1
+    # w4.wgt['MRDA']['Champs'] = 1.0
+    # w4.wgt['MRDA']['Playoff'] = 0.9
+    # w4.wgt['MRDA']['Sanc'] = 0.7
+    # w4.wgt['MRDA']['Reg'] = 0.4
+    # w4.wgt['MRDA']['Other'] = 0.1
+    # w4.wgt['Other']['Champs'] = 0.5
+    # w4.wgt['Other']['Playoff'] = 0.5
+    # w4.wgt['Other']['Sanc'] = 0.2
+    # w4.wgt['Other']['Reg'] = 0.1
+    # w4.wgt['Other']['Other'] = 0.01
+    # w4.decay = [1.0, 0.9, 0.2, 0.1]
+    #
+    # w = [w1,w2,w4]
+    w = [w2]
 
     # return weight model (array)
     return w

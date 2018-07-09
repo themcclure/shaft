@@ -75,6 +75,9 @@ def get_version(workbook):
         if 'WFTDA Referee' in workbook.get_sheet_names() or 'WFTDA NSO' in workbook.get_sheet_names():
             # this is an old history doc but it's been modified to change the WFTDA Summary tab name
             return None
+        elif 'Learn More' in workbook.get_sheet_names():
+            # fake out OHDv3 as "valid"
+            return 5
         elif 'Instructions' not in workbook.get_sheet_names():
             # this is a new history doc it's been modified to delete the instructions tab (a no no)
             return None
@@ -117,95 +120,226 @@ def load_file(filename, freezeDate=datetime.date.today()):
         if name is None or name == '' or name == '-':
             # fall back to file name
             name = filename
-        # create official object, and fill in metadata
-        off = Official(unicode(name))
-        off.refcert = normalize_cert(wb['Summary']['C7'].value)
-        off.nsocert = normalize_cert(wb['Summary']['C8'].value)
+    elif ver == 5:
+        # this is a new OHDv3 doc, and the name is in a different cell:
+        name = wb['Summary']['C3'].value
+        if name is None or name == '' or name == '-':
+            # fall back to preferred name
+            name = wb['Summary']['C2'].value
+        if name is None or name == '' or name == '-':
+            # fall back to legal name
+            name = wb['Summary']['D3'].value
+        if name is None or name == '' or name == '-':
+            # fall back to file name
+            name = filename
+    else:
+        # TODO: OPTIONAL: support the old version of the history doc
+        print "**** UNKNOWN History Doc found: %s" % filename
+        return None
 
-        # go through each game in the Game History tab
-        history = wb['Game History']
-        # TODO: OPTIONAL: Should be made into a function to go through the Other tab... maybe primacy 3, so easily filtered?
-        # TODO: OPTIONAL: like, (date, assn, type, role, secondary_role) = process_row(entry) - that way the Other tab can be processed just fine
-        for entry in history.rows:
-            # skip entirely blank lines
-            if len(entry) == 0:
-                continue
+    # TODO: remove this later! This is just for TOSP2018, and uncomment out the stuff above ^
+    # The filename has been crafted to match the applicant's name on the application form, so use this as the normalized name
+    # name = filename
+    # name = name.rpartition(u'/')  # get rid of the path
+    # name = name[-1]
+    # name = name.rpartition(u'.')  # get rid of the .xslx
+    # name = name[0]
+
+    # create official object, and fill in metadata
+    off = Official(unicode(name))
+    off.refcert = normalize_cert(wb['Summary']['C7'].value)
+    off.nsocert = normalize_cert(wb['Summary']['C8'].value)
+
+    # go through each game in the Game History tab
+    history = wb['Game History']
+    # TODO: OPTIONAL: Should be made into a function to go through the Other tab... maybe primacy 3, so easily filtered?
+    # TODO: OPTIONAL: like, (date, assn, type, role, secondary_role) = process_row(entry) - that way the Other tab can be processed just fine
+    for entry in history.rows:
+        # skip entirely blank lines
+        if len(entry) == 0:
+            continue
+        # skip over lines with no valid date
+        try:
             date = entry[0].value
-            # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
-            if not isinstance(date, datetime.date):
-                if isinstance(date, float):
-                    try:
-                        date = utils.datetime.from_excel(date)
-                    except:
-                        continue
-                else:
+        except Exception as e:
+            print u'Date exception: {}'.format(e)
+            continue
+
+        # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
+        if not isinstance(date, datetime.date):
+            if isinstance(date, float):
+                try:
+                    date = utils.datetime.from_excel(date)
+                except:
                     continue
-
-            # calculate the age (in whole years), relative to the freezeDate / today
-            # skipping over games that happen in the "future"
-            date = date.date()
-            if date > freezeDate:
-                continue
-            age = relativedelta.relativedelta(freezeDate, date).years
-
-            if len(entry) < 6:
-                continue
-            assn = entry[6].value
-
-            if assn:
-                assn = assn.strip()
-            # if we don't recognize the association, use 'Other'
-            if assn not in assns:
-                assn = 'Other'
-
-            if len(entry) < 7:
-                continue
-            type = entry[7].value
-            # remove entries with no game type entered
-            if type is None:
-                continue
             else:
-                type = type.strip()
-                # normalize types in ALL CAPS
-                type = type.capitalize()
-
-            # skip over records that have an invalid type listed
-            if type not in types:
                 continue
 
-            # extract the primary role/position (secondary position is handled below)
-            if len(entry) < 8:
-                continue
-            role = entry[8].value
-            # skip over rows with no position listed
-            if role is None:
-                continue
-            # remove padding whitespace so it can be found in the list of real roles
-            role = role.strip()
-            # skip positions abbreviations that don't actually exist
-            if role not in roles:
-                continue
+        # calculate the age (in whole years), relative to the freezeDate / today
+        # skipping over games that happen in the "future"
+        date = date.date()
+        if date > freezeDate:
+            continue
+        age = relativedelta.relativedelta(freezeDate, date).years
 
-            # extract the secondary role/position (secondary position is handled below)
-            if len(entry) < 9:
-                continue
+        if len(entry) < 6:
+            continue
+        assn = entry[6].value
+
+        if assn:
+            assn = assn.strip()
+        # if we don't recognize the association, use 'Other'
+        if assn not in assns:
+            assn = 'Other'
+
+        event = unicode(entry[1].value)
+        if event:
+            event = event.strip()
+
+        if len(entry) < 7:
+            continue
+        type = entry[7].value
+        # remove entries with no game type entered
+        if type is None:
+            continue
+        else:
+            type = type.strip()
+            # normalize types in ALL CAPS
+            type = type.capitalize()
+
+        # skip over records that have an invalid type listed
+        if type not in types:
+            continue
+
+        # extract the primary role/position (secondary position is handled below)
+        if len(entry) < 8:
+            continue
+        role = entry[8].value
+        # skip over rows with no position listed
+        if role is None:
+            continue
+        # remove padding whitespace so it can be found in the list of real roles
+        role = role.strip()
+        # skip positions abbreviations that don't actually exist
+        if role not in roles:
+            continue
+
+        # extract the secondary role/position (secondary position is handled below)
+        if len(entry) < 9:
+            continue
+        try:
             secondary = entry[9].value
-            # remove padding whitespace so it can be found in the list of real roles
-            if secondary is not None:
-                secondary = secondary.strip()
+        except Exception as e:
+            print "can't add secondary: {}".format(e)
 
-            # create the primary game
-            off.add_game(Game(assn, type, role, age, 1, date))
+        # remove padding whitespace so it can be found in the list of real roles
+        if secondary is not None:
+            secondary = secondary.strip()
 
-            # create the secondary game
-            secondary_game = Game(assn, type, secondary, age, 2, date)
-            if secondary_game.primacy is not None:
-                off.add_game(secondary_game)
+        # create the primary game
+        off.add_game(Game(assn, type, role, age, 1, date, event))
 
+        # create the secondary game
+        secondary_game = Game(assn, type, secondary, age, 2, date, event)
+        if secondary_game.primacy is not None:
+            off.add_game(secondary_game)
+
+    # go through each game in the Other History tab
+    if 'Other History' not in wb.get_sheet_names():
         return off
+    history = wb['Other History']
+    # TODO: OPTIONAL: Should be made into a function
+    for entry in history.rows:
+        # skip entirely blank lines
+        if len(entry) == 0:
+            continue
+        # skip over lines with no valid date
+        try:
+            date = entry[0].value
+        except Exception as e:
+            print u'Date exception: {}'.format(e)
+            continue
 
-    # no supported version found
-    return None
+        # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
+        if not isinstance(date, datetime.date):
+            if isinstance(date, float):
+                try:
+                    date = utils.datetime.from_excel(date)
+                except:
+                    continue
+            else:
+                continue
+
+        # calculate the age (in whole years), relative to the freezeDate / today
+        # skipping over games that happen in the "future"
+        date = date.date()
+        if date > freezeDate:
+            continue
+        age = relativedelta.relativedelta(freezeDate, date).years
+
+        if len(entry) < 6:
+            continue
+        assn = entry[6].value
+
+        if assn:
+            assn = assn.strip()
+        # if we don't recognize the association, use 'Other'
+        if assn not in assns:
+            assn = 'Other'
+
+        event = entry[1].value
+        if event:
+            event = event.strip()
+
+        if len(entry) < 7:
+            continue
+        type = entry[7].value
+        # remove entries with no game type entered
+        if type is None:
+            continue
+        else:
+            type = type.strip()
+            # normalize types in ALL CAPS
+            type = type.capitalize()
+
+        # skip over records that have an invalid type listed
+        if type not in types:
+            continue
+
+        # extract the primary role/position (secondary position is handled below)
+        if len(entry) < 8:
+            continue
+        role = entry[8].value
+        # skip over rows with no position listed
+        if role is None:
+            continue
+        # remove padding whitespace so it can be found in the list of real roles
+        role = role.strip()
+        # skip positions abbreviations that don't actually exist
+        if role not in roles:
+            continue
+
+        # extract the secondary role/position (secondary position is handled below)
+        if len(entry) < 9:
+            continue
+        try:
+            secondary = entry[9].value
+        except Exception as e:
+            print "can't add secondary: {}".format(e)
+
+        # remove padding whitespace so it can be found in the list of real roles
+        if secondary is not None:
+            secondary = secondary.strip()
+
+        # create the primary game
+        off.add_game(Game(assn, type, role, age, 1, date, event))
+
+        # create the secondary game
+        secondary_game = Game(assn, type, secondary, age, 2, date, event)
+        if secondary_game.primacy is not None:
+            off.add_game(secondary_game)
+
+    return off
 
 
 def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):

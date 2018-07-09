@@ -3,7 +3,7 @@ __author__ = 'hammer'
 CONFIG:
 List of known Associations, Game Types and Roles
 """
-assns = ['WFTDA', 'MRDA', 'Other']
+assns = ['WFTDA', 'MRDA', 'JRDA', 'Other']
 types = ['Champs', 'Playoff', 'Sanc', 'Reg', 'Other']
 ref_roles = ['THR', 'CHR', 'HR', 'IPR', 'JR', 'OPR', 'RALT']
 nso_family = {}

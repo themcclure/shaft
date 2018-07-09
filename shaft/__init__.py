@@ -27,6 +27,7 @@ from shaft.Load import load_files_from_dir
 from shaft.Save import create_results
 from shaft.Save import create_raw_results
 from shaft.Save import create_rejects
+from shaft.Save import create_events
 from shaft.config import roles, ref_roles, nso_roles, nso_family
 
 

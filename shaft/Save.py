@@ -97,7 +97,7 @@ def create_results(file_name, officials, model):
 
 def create_rejects(file_name, rejects):
     '''
-    Creates a file with the rejected file names, and the reson for rejection
+    Creates a file with the rejected file names, and the reason for rejection
     :param file_name: filename to write to
     :param rejects: list of tuples (history file, reject reason)
     :return: None
@@ -113,6 +113,27 @@ def create_rejects(file_name, rejects):
 
     for r in rejects:
         wb['Unprocessed Applicants'].append(r)
+
+    # save the file
+    wb.save(file_name)
+
+
+def create_events(file_name, events):
+    """
+    Creates a file with the events file names, and the list of unique events
+    :param file_name: filename to write to
+    :param events: list of tuples (name, year, event name, type of event, role)
+    :return: None
+    """
+
+    # set up the events file
+    wb = Workbook()
+    page1 = wb.active
+    page1.title = 'Events'
+    wb['Events'].append(['Name', 'Event Year', 'Event name', 'Type of event', 'Role'])
+
+    for e in events:
+        wb['Events'].append(e)
 
     # save the file
     wb.save(file_name)
