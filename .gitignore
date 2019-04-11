@@ -7,6 +7,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+venv
 env/
 build/
 develop-eggs/
@@ -58,3 +59,5 @@ target/
 
 # IDEA stuff:
 .idea/workspace.xml
+.idea/
+/venv/
