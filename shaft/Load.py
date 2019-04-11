@@ -16,9 +16,14 @@ import datetime
 from dateutil import relativedelta
 from openpyxl import load_workbook
 from openpyxl import utils
-from openpyxl import Workbook
+from openpyxl.utils.datetime import from_excel
+# from openpyxl import Workbook
 
-import config
+# for loading some google docs using personal access credentials
+# import gspread
+# from oauth2client.client import AccessTokenCredentials
+
+from . import config
 assns = config.assns
 types = config.types
 roles = config.roles
@@ -109,7 +114,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
     ver = get_version(wb)
     if ver == 1:
         # TODO: OPTIONAL: support the old version of the history doc
-        print "**** OLD History Doc found: %s" % filename
+        print(f"**** OLD History Doc found: {filename}")
         return None
     elif (ver == 2) or (ver == 3) or (ver == 4):
         # extract the official's name
@@ -134,7 +139,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
             name = filename
     else:
         # TODO: OPTIONAL: support the old version of the history doc
-        print "**** UNKNOWN History Doc found: %s" % filename
+        print(f"**** UNKNOWN History Doc found: {filename}")
         return None
 
     # TODO: remove this later! This is just for TOSP2018, and uncomment out the stuff above ^
@@ -146,7 +151,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
     # name = name[0]
 
     # create official object, and fill in metadata
-    off = Official(unicode(name))
+    off = Official(name)
     off.refcert = normalize_cert(wb['Summary']['C7'].value)
     off.nsocert = normalize_cert(wb['Summary']['C8'].value)
 
@@ -162,14 +167,14 @@ def load_file(filename, freezeDate=datetime.date.today()):
         try:
             date = entry[0].value
         except Exception as e:
-            print u'Date exception: {}'.format(e)
+            print(f"Date exception: {e}")
             continue
 
         # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
         if not isinstance(date, datetime.date):
             if isinstance(date, float):
                 try:
-                    date = utils.datetime.from_excel(date)
+                    date = from_excel(date)
                 except:
                     continue
             else:
@@ -192,23 +197,23 @@ def load_file(filename, freezeDate=datetime.date.today()):
         if assn not in assns:
             assn = 'Other'
 
-        event = unicode(entry[1].value)
+        event = entry[1].value
         if event:
             event = event.strip()
 
         if len(entry) < 7:
             continue
-        type = entry[7].value
+        gtype = entry[7].value
         # remove entries with no game type entered
-        if type is None:
+        if gtype is None:
             continue
         else:
-            type = type.strip()
-            # normalize types in ALL CAPS
-            type = type.capitalize()
+            gtype = gtype.strip()
+            # normalize game types in ALL CAPS
+            gtype = gtype.capitalize()
 
         # skip over records that have an invalid type listed
-        if type not in types:
+        if gtype not in types:
             continue
 
         # extract the primary role/position (secondary position is handled below)
@@ -225,22 +230,23 @@ def load_file(filename, freezeDate=datetime.date.today()):
             continue
 
         # extract the secondary role/position (secondary position is handled below)
+        secondary = None
         if len(entry) < 9:
             continue
         try:
             secondary = entry[9].value
         except Exception as e:
-            print "can't add secondary: {}".format(e)
+            print(f"can't add secondary: {e}")
 
         # remove padding whitespace so it can be found in the list of real roles
         if secondary is not None:
             secondary = secondary.strip()
 
         # create the primary game
-        off.add_game(Game(assn, type, role, age, 1, date, event))
+        off.add_game(Game(assn, gtype, role, age, 1, date, event))
 
         # create the secondary game
-        secondary_game = Game(assn, type, secondary, age, 2, date, event)
+        secondary_game = Game(assn, gtype, secondary, age, 2, date, event)
         if secondary_game.primacy is not None:
             off.add_game(secondary_game)
 
@@ -257,7 +263,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
         try:
             date = entry[0].value
         except Exception as e:
-            print u'Date exception: {}'.format(e)
+            print(f"Date exception: {e}")
             continue
 
         # the top 3 rows are headers and there might be blank lines, so skip over lines without dates:
@@ -293,17 +299,17 @@ def load_file(filename, freezeDate=datetime.date.today()):
 
         if len(entry) < 7:
             continue
-        type = entry[7].value
+        gtype = entry[7].value
         # remove entries with no game type entered
-        if type is None:
+        if gtype is None:
             continue
         else:
-            type = type.strip()
+            gtype = gtype.strip()
             # normalize types in ALL CAPS
-            type = type.capitalize()
+            gtype = gtype.capitalize()
 
         # skip over records that have an invalid type listed
-        if type not in types:
+        if gtype not in types:
             continue
 
         # extract the primary role/position (secondary position is handled below)
@@ -320,22 +326,23 @@ def load_file(filename, freezeDate=datetime.date.today()):
             continue
 
         # extract the secondary role/position (secondary position is handled below)
+        secondary = None
         if len(entry) < 9:
             continue
         try:
             secondary = entry[9].value
         except Exception as e:
-            print "can't add secondary: {}".format(e)
+            print(f"can't add secondary: {e}")
 
         # remove padding whitespace so it can be found in the list of real roles
         if secondary is not None:
             secondary = secondary.strip()
 
         # create the primary game
-        off.add_game(Game(assn, type, role, age, 1, date, event))
+        off.add_game(Game(assn, gtype, role, age, 1, date, event))
 
         # create the secondary game
-        secondary_game = Game(assn, type, secondary, age, 2, date, event)
+        secondary_game = Game(assn, gtype, secondary, age, 2, date, event)
         if secondary_game.primacy is not None:
             off.add_game(secondary_game)
 
@@ -352,11 +359,11 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     histories = []
     rejects = []
     # get the list of history docs to process
-    file_list = os.walk(history_dir).next()[2]
+    file_list = next(os.walk(history_dir))[2]
     # remove files that start with a . like .DS_Store and .bashrc etc
     file_list = [f for f in file_list if not f[0] == '.']
 
-    print file_list
+    print(file_list)
     for filename in file_list:
         # skip over files that begin with _ (such as output from this tool)
         if filename[0] == '_':
@@ -367,7 +374,7 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
         # skip files that do not end with a .xlsx
         elif filename[-5:] != '.xlsx':
             continue
-        print filename
+        print(filename)
         h = load_file(history_dir + '/' + filename, freezeDate)
         if h is not None:
             histories.append(h)
@@ -377,33 +384,25 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     return histories, rejects
 
 
-import gspread
-from oauth2client.client import AccessTokenCredentials
-
-
-def load_google_sheet(url, token, freezeDate=datetime.date.today()):
-    """
-    Loads an official's history document from a live google sheet and returns it as a raw Official object
-    :param url: the URL of history doc
-    :param token: the security token required
-    :param freezeDate: the date to measure the age of games
-    :return: Official object
-    """
-    access_token = "ya29.Ci8uA-oQLfvo_NIVOh6ayWiNadGSt52xcN8TUY97ywsBMrwJOFdiXr_yeTdbdXXh0A"
-    refresh_token = "1/EoXmQmxwjPGsGsyxB7wJ630dLVJrrU29Ff3lcZ8aubE"
-    mike_url = "https://docs.google.com/spreadsheets/d/1kG9QTdus7LbpZP-3L9fNvwQ0nVpUUXyw7m7hpKSBH-E/edit#gid=2008460745"
-    aggie_url = "https://docs.google.com/spreadsheets/d/1f9do7TIC31ktgCww0Sw1kvEl7bQc6RPCMExFhfR7cso/edit#gid=1988016352"
-    clobber_url = "https://docs.google.com/spreadsheets/d/1kbScLowzIzpDkKtr9eO9MvWnaGdG3V4RDzQqV_KOcso/edit#gid=1988016352"
-    urls = [mike_url, aggie_url, clobber_url]
-    creds = AccessTokenCredentials(access_token, 'Agent/1.0')
-    gs = gspread.authorize(creds)
-    wb = gs.open_by_url(urls[url])
-
-    return wb
-
-
-
-
+# def load_google_sheet(url, token, freezeDate=datetime.date.today()):
+#     """
+#     Loads an official's history document from a live google sheet and returns it as a raw Official object
+#     :param url: the URL of history doc
+#     :param token: the security token required
+#     :param freezeDate: the date to measure the age of games
+#     :return: Official object
+#     """
+#     access_token = "ya29.Ci8uA-oQLfvo_NIVOh6ayWiNadGSt52xcN8TUY97ywsBMrwJOFdiXr_yeTdbdXXh0A"
+#     refresh_token = "1/EoXmQmxwjPGsGsyxB7wJ630dLVJrrU29Ff3lcZ8aubE"
+#     mike_url = "https://docs.google.com/spreadsheets/d/1kG9QTdus7LbpZP-3L9fNvwQ0nVpUUXyw7m7hpKSBH-E/edit#gid=2008460745"
+#     aggie_url = "https://docs.google.com/spreadsheets/d/1f9do7TIC31ktgCww0Sw1kvEl7bQc6RPCMExFhfR7cso/edit#gid=1988016352"
+#     clobber_url = "https://docs.google.com/spreadsheets/d/1kbScLowzIzpDkKtr9eO9MvWnaGdG3V4RDzQqV_KOcso/edit#gid=1988016352"
+#     urls = [mike_url, aggie_url, clobber_url]
+#     creds = AccessTokenCredentials(access_token, 'Agent/1.0')
+#     gs = gspread.authorize(creds)
+#     wb = gs.open_by_url(urls[url])
+#
+#     return wb
 
 
 # Some nifty bits of code:

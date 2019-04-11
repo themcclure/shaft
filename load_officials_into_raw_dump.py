@@ -1,11 +1,11 @@
 import shaft
 import datetime
-from itertools import ifilter, ifilterfalse
-from operator import attrgetter, methodcaller
+# from itertools import ifilter, ifilterfalse
+# from operator import attrgetter, methodcaller
 
 
 # sample weightings
-weights = []
+weights = list()
 # weights = shaft.create_weights()
 # weights[2].secondary_weight = 0.9
 # weights[2].tertiary_weight = 0.1
@@ -31,35 +31,32 @@ weights.append(w)
 # TODO: FUTURE: currently just a single date for each applicant, make it able to be unique per applicant (probably as part of processing a file of applicants
 # this is the date applications were initially assessed and downloaded, so everyone should be held against that date so I don't have to download more recent ones all the time
 # freezeDate = datetime.date.today()
-freezeDate = datetime.date(2017,1,1)
+freezeDate = datetime.date(2017, 1, 1)
 
 # production ENV
 dir_path = '/Users/mcclure/Google Drive/TOSP/2016/2016 Selections/'
 dir_name = 'Applicant History Docs'
 # Diva's data set:
-#dir_name = 'Copy of Applicant History Docs'
+# dir_name = 'Copy of Applicant History Docs'
 
 # test ENV (uncomment to run on test data)
-#dir_path = '/Users/mcclure/Google Drive/Crewenator/CC2017/'
-#dir_name = 'Docs Test'
+# dir_path = '/Users/mcclure/Google Drive/Crewenator/CC2017/'
+# dir_name = 'Docs Test'
 
 # load the officials information from the exported excel files
 o, rejects = shaft.load_files_from_dir(dir_path + dir_name, freezeDate)
 
 
 if __name__ == '__main__':
-    print "Running"
+    print("Running")
     for i in o:
-        print i
-        #print "strict:"
-        #print i.weighting['wstrict']
-        #print "std/vanilla:"
-        #print i.weighting['std']
-        #print "full (all the bells and whistles):"
-        #print i.weighting['full']
-
+        print(i)
+        # print("strict:")
+        # print(i.weighting['wstrict'])
+        # print("std/vanilla:")
+        # print(i.weighting['std'])
+        # print("full (all the bells and whistles):")
+        # print(i.weighting['full'])
 
     filename_base = dir_path + dir_name + '/_' + dir_name
     shaft.create_raw_results(filename_base + '-Raw_Dump.xlsx', o, w)
-
-

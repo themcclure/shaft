@@ -1,7 +1,7 @@
 import shaft
 import datetime
-from itertools import ifilter, ifilterfalse
-from operator import attrgetter, methodcaller
+# from itertools import ifilter, ifilterfalse
+# from operator import attrgetter, methodcaller
 
 
 # sample weightings
@@ -71,10 +71,10 @@ w2.decay = [1.0, 1.0, 0]
 weights.append(w2)
 
 
-# Something something unicode is difficult
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
+# # Something something unicode is difficult
+# import sys
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 
 
 # set the freeze date of the applications
@@ -98,29 +98,29 @@ for i in o:
 
 
 if __name__ == '__main__':
-    print "Running"
+    print("Running")
     now = datetime.datetime.now()
 
     for i in o:
-        print i
-        # print "strict:"
-        # print i.weighting['wstrict']
-        # print "std/vanilla:"
-        # print i.weighting['std']
-        # print "full (all the bells and whistles):"
-        # print i.weighting['full']
+        print(i)
+        # print("strict:")
+        # print(i.weighting['wstrict'])
+        # print("std/vanilla:")
+        # print(i.weighting['std'])
+        # print("full (all the bells and whistles):")
+        # print(i.weighting['full'])
 
     # This is for debugging
     if False:
-        print "ref roles:"
+        print("ref roles:")
         for r in shaft.ref_roles:
-            print r
-            print shaft.sort_by_role(o, r, 'full')
+            print(r)
+            print(shaft.sort_by_role(o, r, 'full'))
 
-        print "NSO roles:"
+        print("NSO roles:")
         for r in shaft.nso_roles:
-            print r
-            print shaft.sort_by_role(o, r, 'full')
+            print(r)
+            print(shaft.sort_by_role(o, r, 'full'))
 
     filename_base = dir_path + dir_name + '/_' + dir_name
     for w in weights:
@@ -133,4 +133,4 @@ if __name__ == '__main__':
     # events = [list(y) for y in set(tuple(y) for y in events)]
     # shaft.create_events(filename_base + '-events.xlsx', events)
 
-    print u'Runtime is {}s'.format(datetime.datetime.now() - now)
+    print(f"Runtime is {datetime.datetime.now() - now}s")

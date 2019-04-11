@@ -5,7 +5,8 @@ Possibly ALL the weighting models can be applied on input and just used as neede
 """
 __author__ = 'hammer'
 
-from itertools import ifilter, ifilterfalse
+from itertools import filterfalse
+from functools import reduce
 from operator import attrgetter, methodcaller
 
 # TODO: OPTIONAL: introspect certain information... such as "how many years they've been officiating sanctioned play"
@@ -14,7 +15,7 @@ from operator import attrgetter, methodcaller
 
 # CONFIG:
 # list of known Associations, Game Types and Roles
-import config
+from . import config
 assns = config.assns
 types = config.types
 roles = config.roles
@@ -68,9 +69,9 @@ class Official:
         if not isinstance(role, list):
                 role = [role]
         if primary_only:
-            return list(ifilter(lambda x: attrgetter('role')(x) in role, list(ifilter(lambda x: attrgetter('primacy')(x) == 1, self.games))))
+            return list(filter(lambda x: attrgetter('role')(x) in role, list(filter(lambda x: attrgetter('primacy')(x) == 1, self.games))))
         else:
-            return list(ifilter(lambda x: attrgetter('role')(x) in role, self.games))
+            return list(filter(lambda x: attrgetter('role')(x) in role, self.games))
 
     def apply_weight_models(self, models):
         """
@@ -164,7 +165,7 @@ class Game:
         Age is the the number of whole years since the reference date (freezeDate)
         Primacy is 1 for games worked in the primary position, 2 for secondary positions
     """
-    def __init__(self, assn, type, role, age, primacy, date, event):
+    def __init__(self, assn, gtype, role, age, primacy, date=None, event=None):
         # default "error" values
         self.assn = None
         self.type = None
@@ -175,9 +176,9 @@ class Game:
         self.event = None
 
         # if all the inputs are valid, then populate the data
-        if (assn in assns) and (type in types) and (role in roles) and (age >= 0) and (primacy >= 1):
+        if (assn in assns) and (gtype in types) and (role in roles) and (age >= 0) and (primacy >= 1):
             self.assn = assn
-            self.type = type
+            self.type = gtype
             self.role = role
             self.age = age
             self.date = date
@@ -210,8 +211,8 @@ class WeightModel:
         for assn in assns:
             if assn not in self.wgt.keys():
                 self.wgt[assn] = {}
-            for type in types:
-                self.wgt[assn][type] = 1
+            for gtype in types:
+                self.wgt[assn][gtype] = 1
 
     def __repr__(self):
         return "<Weight model %s>" % self.name
@@ -298,16 +299,16 @@ def filtertest():
     a1 = Official('a')
     a1.refcert = 1
     a1.nsocert = 1
-    a1.games.append(Game('WFTDA', 'Playoff', 'CHR',0,1))
-    a1.games.append(Game('WFTDA', 'Sanc', 'IPR',0,1))
-    a1.games.append(Game('WFTDA', 'Other', 'IPR',0,1))
+    a1.games.append(Game('WFTDA', 'Playoff', 'CHR', 0, 1))
+    a1.games.append(Game('WFTDA', 'Sanc', 'IPR', 0, 1))
+    a1.games.append(Game('WFTDA', 'Other', 'IPR', 0, 1))
     a2 = Official('c')
     a2.refcert = 0
     a2.nsocert= 0
-    a2.games.append(Game('WFTDA', 'Playoff', 'OPR',0,1))
-    a2.games.append(Game('WFTDA', 'Other', 'OPR',0,1))
-    a2.games.append(Game('WFTDA', 'Reg', 'OPR',0,1))
-    a2.games.append(Game('MRDA','Sanc','JR',0,1))
+    a2.games.append(Game('WFTDA', 'Playoff', 'OPR', 0, 1))
+    a2.games.append(Game('WFTDA', 'Other', 'OPR', 0, 1))
+    a2.games.append(Game('WFTDA', 'Reg', 'OPR', 0, 1))
+    a2.games.append(Game('MRDA', 'Sanc', 'JR', 0, 1))
     a3 = Official('d')
     a3.refcert = 2
     a3.nsocert = 0
@@ -319,30 +320,30 @@ def filtertest():
     a5.refcert = 0
     a5.nsocert = 1
     a = [a1, a2, a3, a4, a5]
-    print "A = ", a
-    print "filtering refcert > 0:"
-    f = ifilter(lambda x: attrgetter('refcert')(x) > 0, a)
-    for i in f: print i
-    print "filtered ones (simpler):"
-    f = ifilterfalse(lambda x: attrgetter('refcert')(x) > 0, a)
-    for i in f: print i
-    print "sorting by refcert:"
-    print sorted(a, key=attrgetter('refcert', 'name'), reverse=True)
-    print "filtering refcert > 0, and sorted:"
-    f = ifilter(lambda x: attrgetter('refcert')(x) > 0, a)
-    print sorted(f, key=attrgetter('refcert', 'name'), reverse=True)
-    print "filtering refcert > 0, and sorted desc by refcert and asc by name:"
-    f = ifilter(lambda x: attrgetter('refcert')(x) > 0, a)
-    print sorted(sorted(f, key=attrgetter('name')), key=attrgetter('refcert'), reverse=True)
+    print(f"A = {a}")
+    print("filtering refcert > 0:")
+    f = filter(lambda x: attrgetter('refcert')(x) > 0, a)
+    for i in f: print(i)
+    print("filtered ones (simpler):")
+    f = filterfalse(lambda x: attrgetter('refcert')(x) > 0, a)
+    for i in f: print(i)
+    print("sorting by refcert:")
+    print(sorted(a, key=attrgetter('refcert', 'name'), reverse=True))
+    print("filtering refcert > 0, and sorted:")
+    f = filter(lambda x: attrgetter('refcert')(x) > 0, a)
+    print(sorted(f, key=attrgetter('refcert', 'name'), reverse=True))
+    print("filtering refcert > 0, and sorted desc by refcert and asc by name:")
+    f = filter(lambda x: attrgetter('refcert')(x) > 0, a)
+    print(sorted(sorted(f, key=attrgetter('name')), key=attrgetter('refcert'), reverse=True))
 
     # returns the test officials array, after running the filter code
     return a
 
 def create_weights():
-    '''
+    """
     Create the default set of weighting models
     :return: returns an list of weight models
-    '''
+    """
     # vanilla model, all 1s (basically a count of the number of games worked with no age decay)
     # w1 = WeightModel('std', 1)
 
@@ -356,8 +357,8 @@ def create_weights():
     del(w2.wgt['MRDA'])
     del(w2.wgt['Other'])
 
-    #w3 = WeightModel('aged')
-    #w3.decay = [1.0, 0.9, 0.2, 0.1]
+    # w3 = WeightModel('aged')
+    # w3.decay = [1.0, 0.9, 0.2, 0.1]
 
     # w4 = WeightModel('full')
     # w4.wgt['WFTDA']['Champs'] = 1.25
@@ -384,35 +385,35 @@ def create_weights():
     return w
 
 
-def sort_by_role(officials, role, weight_model, filter=True):
+def sort_by_role(officials, role, weight_model, filter_zero_weight=True):
     """
     This function sorts the officials in a list, in order of their weighted value for a role, in a given model
     :param officials: list of officials
     :param role: role to be sorted by
     :param weight_model: name of the model to sort by
-    :param filter: if the zero weight entries should be removed from the returned list
+    :param filter_zero_weight: if the zero weight entries should be removed from the returned list
     :return: sorted list of officials data (name, cert level (ref or NSO depending on the role), weighted value, raw games in that role)
     """
 
     # remove the officials with no experience in the role
-    list = officials
-    if filter is True:
-        list = ifilter(lambda x: methodcaller('get_weight', role, weight_model)(x) > 0, officials)
+    inner_list = officials
+    if filter_zero_weight is True:
+        inner_list = filter(lambda x: methodcaller('get_weight', role, weight_model)(x) > 0, officials)
 
     # sort the list by weighted value
-    list = sorted(list, key=methodcaller('get_weight', role, weight_model), reverse=True)
+    inner_list = sorted(inner_list, key=methodcaller('get_weight', role, weight_model), reverse=True)
 
     # return a list of tuples containing just the information needed
-    #return map(lambda z: (z.name, z.refcert if role in config.ref_roles else z.nsocert, z.weighting[weight_model][role], len(z.get_games(role))), list)
-    return map(lambda z: z.get_role_summary(role, weight_model), list)
+    # return map(lambda z: (z.name, z.refcert if role in config.ref_roles else z.nsocert, z.weighting[weight_model][role], len(z.get_games(role))), inner_list)
+    return map(lambda z: z.get_role_summary(role, weight_model), inner_list)
 
 
 if __name__ == '__main__':
-    #o = filtertest()
+    # o = filtertest()
     w = create_weights()
-    import Load
+    from . import Load
     mh = Load.load_file('../sample/MikeHammer_GameHistoryNew.xlsx')
     mh.apply_weight_models(w)
-    print mh.weighting['wstrict']
-    #print mh.weighting['std']
-    #print mh.weighting['aged']
+    print(mh.weighting['wstrict'])
+    # print(mh.weighting['std'])
+    # print(mh.weighting['aged'])

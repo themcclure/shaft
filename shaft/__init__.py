@@ -9,7 +9,7 @@ We have several parts:
 - save sheet summarizing officials
 """
 __author__ = 'hammer'
-__version__ = 0.5
+__version__ = 0.6
 
 # TODO: FUTURE: OPTIONAL: add in game mimimums - currently can filter out in the spreadsheet, no need to here. Probably not until application processing is automated
 
@@ -32,4 +32,4 @@ from shaft.config import roles, ref_roles, nso_roles, nso_family
 
 
 if __name__ == '__main__':
-    print "Damn right"
+    print("Damn right")
