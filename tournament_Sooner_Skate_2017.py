@@ -1,11 +1,9 @@
 import shaft
 import datetime
-from itertools import ifilter, ifilterfalse
-from operator import attrgetter, methodcaller
 
 
 # sample weightings
-weights = []
+weights = list()
 # weights = shaft.create_weights()
 # weights[2].secondary_weight = 0.9
 # weights[2].tertiary_weight = 0.1
@@ -36,34 +34,35 @@ freezeDate = datetime.date(2017,1,17)
 
 dir_path = '/Users/mcclure/Google Drive/Crewenator/SS2017/'
 dir_name = 'Game Histories'
-dir_name = 'Test Folder'
+# dir_name = 'Test Folder'
 o, rejects = shaft.load_files_from_dir(dir_path + dir_name, freezeDate)
 
 for i in o:
     i.apply_weight_models(weights)
 
 if __name__ == '__main__':
-    print "Running"
+    print("Running")
+    debug = False
     for i in o:
-        print i
-        #print "strict:"
-        #print i.weighting['wstrict']
-        #print "std/vanilla:"
-        #print i.weighting['std']
-        #print "full (all the bells and whistles):"
-        #print i.weighting['full']
+        print(i)
+        # print("strict:")
+        # print(i.weighting['wstrict'])
+        # print("std/vanilla:")
+        # print(i.weighting['std'])
+        # print("full (all the bells and whistles):")
+        # print(i.weighting['full'])
 
     # This is for debugging
-    if False:
-        print "ref roles:"
+    if debug:
+        print("ref roles:")
         for r in shaft.ref_roles:
-            print r
-            print shaft.sort_by_role(o, r, 'full')
+            print(r)
+            print(shaft.sort_by_role(o, r, 'full'))
 
-        print "NSO roles:"
+        print("NSO roles:")
         for r in shaft.nso_roles:
-            print r
-            print shaft.sort_by_role(o, r, 'full')
+            print(r)
+            print(shaft.sort_by_role(o, r, 'full'))
 
     filename_base = dir_path + dir_name + '/_' + dir_name
     for w in weights:
@@ -71,4 +70,3 @@ if __name__ == '__main__':
 
     # write out a file of all the rejected files (and why)
     shaft.create_rejects(filename_base + '-rejects.xlsx', rejects)
-

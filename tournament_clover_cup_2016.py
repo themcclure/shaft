@@ -1,11 +1,8 @@
 import shaft
 import datetime
-from itertools import ifilter, ifilterfalse
-from operator import attrgetter, methodcaller
 
 
 # sample weightings
-weights = []
 weights = shaft.create_weights()
 weights[2].secondary_weight = 0.9
 weights[2].tertiary_weight = 0.1
@@ -23,27 +20,28 @@ for i in o:
     i.apply_weight_models(weights)
 
 if __name__ == '__main__':
-    print "Running"
+    print("Running")
+    debug = False
     for i in o:
-        print i
-        #print "strict:"
-        #print i.weighting['wstrict']
-        #print "std/vanilla:"
-        #print i.weighting['std']
-        #print "full (all the bells and whistles):"
-        #print i.weighting['full']
+        print(i)
+        # print("strict:")
+        # print(i.weighting['wstrict'])
+        # print("std/vanilla:")
+        # print(i.weighting['std'])
+        # print("full (all the bells and whistles):")
+        # print(i.weighting['full'])
 
     # This is for debugging
-    if False:
-        print "ref roles:"
+    if debug:
+        print("ref roles:")
         for r in shaft.ref_roles:
-            print r
-            print shaft.sort_by_role(o, r, 'full')
+            print(r)
+            print(shaft.sort_by_role(o, r, 'full'))
 
-        print "NSO roles:"
+        print("NSO roles:")
         for r in shaft.nso_roles:
-            print r
-            print shaft.sort_by_role(o, r, 'full')
+            print(r)
+            print(shaft.sort_by_role(o, r, 'full'))
 
     filename_base = dir_name
     for w in weights:

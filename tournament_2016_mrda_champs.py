@@ -58,6 +58,8 @@ for i in o:
 
 if __name__ == '__main__':
     print("Running")
+    debug = False
+
     for i in o:
         print(i)
         # print("strict:")
@@ -68,7 +70,7 @@ if __name__ == '__main__':
         # print(i.weighting['full'])
 
     # This is for debugging
-    if False:
+    if debug:
         print("ref roles:")
         for r in shaft.ref_roles:
             print(r)

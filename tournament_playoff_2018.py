@@ -10,52 +10,52 @@ weights = list()
 # weights = shaft.create_weights()
 
 # playoff count weighting
-# w2 = shaft.WeightModel('playoff_count_2_years', ch_uplift=1.0)
-# w2.wgt['WFTDA']['Champs'] = 0
-# w2.wgt['WFTDA']['Playoff'] = 1
-# w2.wgt['WFTDA']['Sanc'] = 0
-# w2.wgt['WFTDA']['Reg'] = 0
-# w2.wgt['WFTDA']['Other'] = 0
-# w2.wgt['MRDA']['Champs'] = 0
-# w2.wgt['MRDA']['Playoff'] = 1
-# w2.wgt['MRDA']['Sanc'] = 0
-# w2.wgt['MRDA']['Reg'] = 0
-# w2.wgt['MRDA']['Other'] = 0
-# del(w2.wgt['Other'])
-# w2.decay = [1.0, 1.0, 0]
-# weights.append(w2)
+w2 = shaft.WeightModel('playoff_count_2_years', ch_uplift=1.0)
+w2.wgt['WFTDA']['Champs'] = 0
+w2.wgt['WFTDA']['Playoff'] = 1
+w2.wgt['WFTDA']['Sanc'] = 0
+w2.wgt['WFTDA']['Reg'] = 0
+w2.wgt['WFTDA']['Other'] = 0
+w2.wgt['MRDA']['Champs'] = 0
+w2.wgt['MRDA']['Playoff'] = 1
+w2.wgt['MRDA']['Sanc'] = 0
+w2.wgt['MRDA']['Reg'] = 0
+w2.wgt['MRDA']['Other'] = 0
+del(w2.wgt['Other'])
+w2.decay = [1.0, 1.0, 0]
+weights.append(w2)
 
 # champs count weighting
-# w2 = shaft.WeightModel('champs_count_2_years', ch_uplift=1.0)
-# w2.wgt['WFTDA']['Champs'] = 1
-# w2.wgt['WFTDA']['Playoff'] = 0
-# w2.wgt['WFTDA']['Sanc'] = 0
-# w2.wgt['WFTDA']['Reg'] = 0
-# w2.wgt['WFTDA']['Other'] = 0
-# w2.wgt['MRDA']['Champs'] = 1
-# w2.wgt['MRDA']['Playoff'] = 0
-# w2.wgt['MRDA']['Sanc'] = 0
-# w2.wgt['MRDA']['Reg'] = 0
-# w2.wgt['MRDA']['Other'] = 0
-# del(w2.wgt['Other'])
-# w2.decay = [1.0, 1.0, 0]
-# weights.append(w2)
+w2 = shaft.WeightModel('champs_count_2_years', ch_uplift=1.0)
+w2.wgt['WFTDA']['Champs'] = 1
+w2.wgt['WFTDA']['Playoff'] = 0
+w2.wgt['WFTDA']['Sanc'] = 0
+w2.wgt['WFTDA']['Reg'] = 0
+w2.wgt['WFTDA']['Other'] = 0
+w2.wgt['MRDA']['Champs'] = 1
+w2.wgt['MRDA']['Playoff'] = 0
+w2.wgt['MRDA']['Sanc'] = 0
+w2.wgt['MRDA']['Reg'] = 0
+w2.wgt['MRDA']['Other'] = 0
+del(w2.wgt['Other'])
+w2.decay = [1.0, 1.0, 0]
+weights.append(w2)
 
 # sanc+reg count weighting
-# w2 = shaft.WeightModel('wftda_sanc_reg_mrda_sanc_count_2_years', ch_uplift=1.0)
-# w2.wgt['WFTDA']['Champs'] = 1
-# w2.wgt['WFTDA']['Playoff'] = 1
-# w2.wgt['WFTDA']['Sanc'] = 1
-# w2.wgt['WFTDA']['Reg'] = 1
-# w2.wgt['WFTDA']['Other'] = 0
-# w2.wgt['MRDA']['Champs'] = 1
-# w2.wgt['MRDA']['Playoff'] = 1
-# w2.wgt['MRDA']['Sanc'] = 1
-# w2.wgt['MRDA']['Reg'] = 0
-# w2.wgt['MRDA']['Other'] = 0
-# del(w2.wgt['Other'])
-# w2.decay = [1.0, 1.0, 0]
-# weights.append(w2)
+w2 = shaft.WeightModel('wftda_sanc_reg_mrda_sanc_count_2_years', ch_uplift=1.0)
+w2.wgt['WFTDA']['Champs'] = 1
+w2.wgt['WFTDA']['Playoff'] = 1
+w2.wgt['WFTDA']['Sanc'] = 1
+w2.wgt['WFTDA']['Reg'] = 1
+w2.wgt['WFTDA']['Other'] = 0
+w2.wgt['MRDA']['Champs'] = 1
+w2.wgt['MRDA']['Playoff'] = 1
+w2.wgt['MRDA']['Sanc'] = 1
+w2.wgt['MRDA']['Reg'] = 0
+w2.wgt['MRDA']['Other'] = 0
+del(w2.wgt['Other'])
+w2.decay = [1.0, 1.0, 0]
+weights.append(w2)
 
 
 # JRDA count weighting
@@ -104,6 +104,7 @@ for i in o:
 if __name__ == '__main__':
     print("Running")
     now = datetime.datetime.now()
+    debug = False
 
     for i in o:
         print(i)
@@ -115,7 +116,7 @@ if __name__ == '__main__':
         # print(i.weighting['full'])
 
     # This is for debugging
-    if False:
+    if debug:
         print("ref roles:")
         for r in shaft.ref_roles:
             print(r)
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     # shaft.create_rejects(filename_base + '-rejects.xlsx', rejects)
 
     # generate unique list of events attended by each person in the list
-    # events = [list(y) for y in set(tuple(y) for y in events)]
-    # shaft.create_events(filename_base + '-events.xlsx', events)
+    events = [list(y) for y in set(tuple(y) for y in events)]
+    shaft.create_events(wdir / f"_{dir_name}-events.xlsx", events)
 
     print(f"Runtime is {datetime.datetime.now() - now}s")
