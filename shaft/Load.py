@@ -11,8 +11,9 @@ from shaft import Official
 from shaft import Game
 
 import re
-import os
+# import os
 import datetime
+from pathlib import Path
 from dateutil import relativedelta
 from openpyxl import load_workbook
 from openpyxl import utils
@@ -30,7 +31,7 @@ roles = config.roles
 
 
 # TODO: FUTURE: add in live google sheet parsing
-# TODO: FUTURE: add in parsing of tournament applicaton sheets (raw or baked)
+# TODO: FUTURE: add in parsing of tournament application sheets (raw or baked)
 # TODO: FUTURE: OPTIONAL: iterate through a file to generate the list of officials
 
 
@@ -110,10 +111,11 @@ def load_file(filename, freezeDate=datetime.date.today()):
     :param freezeDate: the date to measure the age of games
     :return: Official object
     """
+    refcert = 0
+    nsocert = 0
     wb = load_workbook(filename, data_only=True, read_only=True)
     ver = get_version(wb)
     if ver == 1:
-        # TODO: OPTIONAL: support the old version of the history doc
         print(f"**** OLD History Doc found: {filename}")
         return None
     elif (ver == 2) or (ver == 3) or (ver == 4):
@@ -125,6 +127,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
         if name is None or name == '' or name == '-':
             # fall back to file name
             name = filename
+        refcert = wb['Summary']['C7'].value
+        nsocert = wb['Summary']['C8'].value
     elif ver == 5:
         # this is a new OHDv3 doc, and the name is in a different cell:
         name = wb['Summary']['C3'].value
@@ -137,8 +141,9 @@ def load_file(filename, freezeDate=datetime.date.today()):
         if name is None or name == '' or name == '-':
             # fall back to file name
             name = filename
+        refcert = wb['Summary']['C5'].value
+        nsocert = wb['Summary']['C6'].value
     else:
-        # TODO: OPTIONAL: support the old version of the history doc
         print(f"**** UNKNOWN History Doc found: {filename}")
         return None
 
@@ -152,8 +157,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
 
     # create official object, and fill in metadata
     off = Official(name)
-    off.refcert = normalize_cert(wb['Summary']['C7'].value)
-    off.nsocert = normalize_cert(wb['Summary']['C8'].value)
+    off.refcert = normalize_cert(refcert)
+    off.nsocert = normalize_cert(nsocert)
 
     # go through each game in the Game History tab
     history = wb['Game History']
@@ -359,23 +364,25 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     histories = []
     rejects = []
     # get the list of history docs to process
-    file_list = next(os.walk(history_dir))[2]
+    # file_list = next(os.walk(history_dir))[2]
+    history_dir = Path(history_dir)
+    file_list = list(history_dir.iterdir())
     # remove files that start with a . like .DS_Store and .bashrc etc
-    file_list = [f for f in file_list if not f[0] == '.']
+    # file_list = [f for f in file_list if not f[0] == '.']
 
     print(file_list)
     for filename in file_list:
         # skip over files that begin with _ (such as output from this tool)
-        if filename[0] == '_':
+        if filename.name.startswith('_'):
             continue
         # skip over filenames that aren't long enough to be real files
-        elif len(filename) < 6:
+        elif len(filename.name) < 6:
             continue
         # skip files that do not end with a .xlsx
-        elif filename[-5:] != '.xlsx':
+        elif not filename.name.endswith('.xlsx'):
             continue
         print(filename)
-        h = load_file(history_dir + '/' + filename, freezeDate)
+        h = load_file(history_dir / filename.name, freezeDate)
         if h is not None:
             histories.append(h)
         else:

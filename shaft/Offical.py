@@ -114,7 +114,7 @@ class Official:
         if wgt > 0:
             return wgt
         else:
-            return None
+            return 0
 
     def get_summary(self, model):
         """

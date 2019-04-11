@@ -1,5 +1,6 @@
 import shaft
 import datetime
+from pathlib import Path
 # from itertools import ifilter, ifilterfalse
 # from operator import attrgetter, methodcaller
 
@@ -84,10 +85,13 @@ weights.append(w2)
 # freezeDate = datetime.date(2017,5,8)
 freezeDate = datetime.date(2018, 5, 12)
 
-dir_path = '/Volumes/GoogleDrive/My Drive/TOSP/2018/2018 Applications/The Curtain/'
-dir_name = 'Exported History Docs'
+# dir_path = '/Volumes/GoogleDrive/My Drive/TOSP/2018/2018 Applications/The Curtain/'
+# dir_name = 'Exported History Docs'
+dir_path = Path('.')
+dir_name = 'sample'
+wdir = dir_path / dir_name
 # dir_name = 'test'
-o, rejects = shaft.load_files_from_dir(dir_path + dir_name, freezeDate)
+o, rejects = shaft.load_files_from_dir(wdir, freezeDate)
 events = list()
 
 for i in o:
@@ -122,9 +126,8 @@ if __name__ == '__main__':
             print(r)
             print(shaft.sort_by_role(o, r, 'full'))
 
-    filename_base = dir_path + dir_name + '/_' + dir_name
     for w in weights:
-        shaft.create_results(filename_base + '-' + w.name + '.xlsx', o, w)
+        shaft.create_results(wdir / f"_{dir_name}-{w.name}.xlsx", o, w)
 
     # write out a file of all the rejected files (and why)
     # shaft.create_rejects(filename_base + '-rejects.xlsx', rejects)
