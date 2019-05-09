@@ -111,8 +111,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
     :param freezeDate: the date to measure the age of games
     :return: Official object
     """
-    refcert = 0
-    nsocert = 0
+    # refcert = 0
+    # nsocert = 0
     wb = load_workbook(filename, data_only=True, read_only=True)
     ver = get_version(wb)
     if ver == 1:
@@ -230,8 +230,12 @@ def load_file(filename, freezeDate=datetime.date.today()):
             continue
         # remove padding whitespace so it can be found in the list of real roles
         role = role.strip()
+        # normalize use of SO to SBO, to be in line with current abbreviations
+        if role == 'SO':
+            role = 'SBO'
         # skip positions abbreviations that don't actually exist
         if role not in roles:
+            print(f"Unknown role {role} found in {name}'s History tab")
             continue
 
         # extract the secondary role/position (secondary position is handled below)
@@ -366,6 +370,7 @@ def load_files_from_dir(history_dir, freezeDate=datetime.date.today()):
     # get the list of history docs to process
     # file_list = next(os.walk(history_dir))[2]
     history_dir = Path(history_dir)
+    # TODO: Maybe just glob on *.xlsx?
     file_list = list(history_dir.iterdir())
     # remove files that start with a . like .DS_Store and .bashrc etc
     # file_list = [f for f in file_list if not f[0] == '.']

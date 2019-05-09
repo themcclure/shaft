@@ -1,5 +1,6 @@
 import shaft
 import datetime
+from pathlib import Path
 # from itertools import ifilter, ifilterfalse
 # from operator import attrgetter, methodcaller
 
@@ -31,11 +32,12 @@ weights.append(w)
 # TODO: FUTURE: currently just a single date for each applicant, make it able to be unique per applicant (probably as part of processing a file of applicants
 # this is the date applications were initially assessed and downloaded, so everyone should be held against that date so I don't have to download more recent ones all the time
 # freezeDate = datetime.date.today()
-freezeDate = datetime.date(2017, 1, 1)
+freezeDate = datetime.date(2019, 5, 6)
 
 # production ENV
-dir_path = '/Users/mcclure/Google Drive/TOSP/2016/2016 Selections/'
-dir_name = 'Applicant History Docs'
+dir_path = Path('/Volumes/GoogleDrive/My Drive/TOSP/2019')
+dir_name = '2019 - Games Histories TOSP'
+wdir = dir_path / dir_name
 # Diva's data set:
 # dir_name = 'Copy of Applicant History Docs'
 
@@ -44,7 +46,7 @@ dir_name = 'Applicant History Docs'
 # dir_name = 'Docs Test'
 
 # load the officials information from the exported excel files
-o, rejects = shaft.load_files_from_dir(dir_path + dir_name, freezeDate)
+o, rejects = shaft.load_files_from_dir(wdir, freezeDate)
 
 
 if __name__ == '__main__':
@@ -58,5 +60,4 @@ if __name__ == '__main__':
         # print("full (all the bells and whistles):")
         # print(i.weighting['full'])
 
-    filename_base = dir_path + dir_name + '/_' + dir_name
-    shaft.create_raw_results(filename_base + '-Raw_Dump.xlsx', o, w)
+    shaft.create_raw_results(wdir / f"_{dir_name}-Raw_Dump.xlsx", o, w)
