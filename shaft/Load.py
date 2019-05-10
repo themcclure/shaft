@@ -162,6 +162,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
 
     # go through each game in the Game History tab
     history = wb['Game History']
+    print(f"DEBUG: Processing games for {name} in {filename}.")
+
     # TODO: OPTIONAL: Should be made into a function to go through the Other tab... maybe primacy 3, so easily filtered?
     # TODO: OPTIONAL: like, (date, assn, type, role, secondary_role) = process_row(entry) - that way the Other tab can be processed just fine
     for entry in history.rows:
@@ -198,6 +200,9 @@ def load_file(filename, freezeDate=datetime.date.today()):
 
         if assn:
             assn = assn.strip()
+            # Normalize to ALL CAPS
+            assn = assn.upper()
+
         # if we don't recognize the association, use 'Other'
         if assn not in assns:
             assn = 'Other'
@@ -214,7 +219,7 @@ def load_file(filename, freezeDate=datetime.date.today()):
             continue
         else:
             gtype = gtype.strip()
-            # normalize game types in ALL CAPS
+            # normalize game types in Capital Case
             gtype = gtype.capitalize()
 
         # skip over records that have an invalid type listed
@@ -230,6 +235,8 @@ def load_file(filename, freezeDate=datetime.date.today()):
             continue
         # remove padding whitespace so it can be found in the list of real roles
         role = role.strip()
+        # Normalize to ALL CAPS
+        role = role.upper()
         # normalize use of SO to SBO, to be in line with current abbreviations
         if role == 'SO':
             role = 'SBO'

@@ -86,8 +86,8 @@ weights.append(w2)
 freezeDate = datetime.date(2019, 5, 6)
 
 dir_path = Path('/Volumes/GoogleDrive/My Drive/TOSP/2019')
-dir_name = '2019 - Games Histories TOSP'  # Test folder
-# dir_name = 'Exported Games History Docs'  # Prod folder
+# dir_name = '2019 - Games Histories TOSP'  # Test folder
+dir_name = 'Exported Games History Docs'  # Prod folder
 wdir = dir_path / dir_name
 o, rejects = shaft.load_files_from_dir(wdir, freezeDate)
 events = list()
